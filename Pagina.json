@@ -1,8 +1,9 @@
 {
-    "rewrites": [
-      {
-        "source": "/(.*)",
-        "destination": "/trabajoSer.html"
-      }
-    ]
-  }
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/trabajoSer.html",
+      "permanent": true
+    }
+  ]
+}
