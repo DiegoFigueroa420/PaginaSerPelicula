@@ -346,4 +346,478 @@ function crearPelicula() {
         `;
     });
 
-    pelic
+    peliculaHTML += `
+        </div>
+        <div class="text-center p-4 rounded" style="background: linear-gradient(135deg, var(--accent-color), #FFA500);">
+            <h3 class="text-white"><i class="bi bi-quote"></i> Frase que Guía el Camino</h3>
+            <p class="text-white fs-5 fst-italic">"${frase || 'El futuro está en mis manos'}"</p>
+        </div>
+        <div class="text-center mt-4">
+            <h1 class="display-1">🎬 FIN 🎬</h1>
+            <p class="text-muted">Pero esto es solo el comienzo...</p>
+        </div>
+    `;
+
+    movieContent.innerHTML = peliculaHTML;
+    moviePreview.classList.add('show');
+
+    // Animación de aparición
+    moviePreview.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Efectos de celebración
+    celebrar();
+
+    // Verificar logro
+    if (!logros.peliculaCreada) {
+        verificarLogro('peliculaCreada');
+    }
+}
+
+// Función para actualizar progreso
+function updateProgress() {
+    const inputs = document.querySelectorAll('input, textarea');
+    let filled = 0;
+    let total = inputs.length + 1; // +1 for emotion
+
+    inputs.forEach(input => {
+        if (input.value.trim()) filled++;
+    });
+
+    if (selectedEmotion) filled++;
+
+    const percentage = Math.round((filled / total) * 100);
+    const progressBar = document.getElementById('progressBar');
+    progressBar.style.width = percentage + '%';
+    progressBar.textContent = percentage + '%';
+
+    // Verificar logro de primera meta
+    const metaCorto = document.getElementById('metaCorto').value;
+    if (metaCorto && !logros.primeraMeta) {
+        verificarLogro('primeraMeta');
+    }
+}
+
+// Función para ver progreso
+function verProgreso() {
+    const stats = document.getElementById('stats');
+    stats.style.display = 'grid';
+    actualizarEstadisticas();
+}
+
+// Función para actualizar estadísticas
+function actualizarEstadisticas() {
+    const metas = [
+        document.getElementById('metaCorto').value,
+        document.getElementById('metaMedio').value,
+        document.getElementById('metaLargo').value
+    ];
+    const metasCompletas = metas.filter(meta => meta).length;
+
+    document.getElementById('totalMetas').textContent = `${metasCompletas}/3`;
+    document.getElementById('etapasCreadas').textContent = etapas.length;
+
+    const fechaInicio = new Date(projectData.fechaInicio || new Date());
+    const hoy = new Date();
+    const dias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
+    document.getElementById('diasTranscurridos').textContent = dias;
+}
+
+// Función para guardar proyecto como PDF
+function guardarProyectoPDF() {
+    const nombre = document.getElementById('nombre').value || 'Usuario';
+
+    // Verificar si jsPDF está disponible
+    if (typeof window.jspdf !== 'undefined') {
+        const { jsPDF } = window.jspdf;
+
+        // Crear PDF
+        const doc = new jsPDF();
+        let yPos = 20;
+
+        // Título
+        doc.setFontSize(22);
+        doc.setTextColor(102, 126, 234);
+        doc.text(`"${nombre}: Una Historia de Éxito"`, 105, yPos, { align: 'center' });
+        yPos += 15;
+
+        // Subtítulo
+        doc.setFontSize(12);
+        doc.setTextColor(128, 128, 128);
+        doc.text('Una producción de CineVida', 105, yPos, { align: 'center' });
+        yPos += 20;
+
+        // Información personal
+        doc.setFontSize(16);
+        doc.setTextColor(0, 0, 0);
+        doc.text('INFORMACIÓN PERSONAL', 20, yPos);
+        yPos += 10;
+
+        doc.setFontSize(12);
+        doc.text(`Nombre: ${nombre}`, 20, yPos);
+        yPos += 7;
+        doc.text(`Edad: ${document.getElementById('edad').value || 'No especificada'}`, 20, yPos);
+        yPos += 7;
+        doc.text(`Profesión: ${document.getElementById('profesion').value || 'No especificada'}`, 20, yPos);
+        yPos += 15;
+
+        // Metas
+        doc.setFontSize(16);
+        doc.text('METAS Y SUEÑOS', 20, yPos);
+        yPos += 10;
+
+        doc.setFontSize(12);
+        doc.text(`• Corto plazo (1 año): ${document.getElementById('metaCorto').value || 'No especificada'}`, 20, yPos);
+        yPos += 7;
+        doc.text(`• Mediano plazo (3-5 años): ${document.getElementById('metaMedio').value || 'No especificada'}`, 20, yPos);
+        yPos += 7;
+        doc.text(`• Largo plazo (10+ años): ${document.getElementById('metaLargo').value || 'No especificada'}`, 20, yPos);
+        yPos += 15;
+
+        // Visión
+        const vision = document.getElementById('vision').value;
+        if (vision) {
+            doc.setFontSize(16);
+            doc.text('VISIÓN DE VIDA', 20, yPos);
+            yPos += 10;
+
+            doc.setFontSize(12);
+            const visionLines = doc.splitTextToSize(`"${vision}"`, 170);
+            doc.text(visionLines, 20, yPos);
+            yPos += visionLines.length * 7 + 10;
+        }
+
+        // Estado emocional
+        if (selectedEmotion) {
+            doc.setFontSize(16);
+            doc.text('ESTADO EMOCIONAL', 20, yPos);
+            yPos += 10;
+
+            doc.setFontSize(12);
+            doc.text(selectedEmotion, 20, yPos);
+            yPos += 15;
+        }
+
+        // Frase motivacional
+        const frase = document.getElementById('frase').value;
+        if (frase) {
+            doc.setFontSize(16);
+            doc.text('FRASE MOTIVACIONAL', 20, yPos);
+            yPos += 10;
+
+            doc.setFontSize(12);
+            doc.text(`"${frase}"`, 20, yPos);
+            yPos += 15;
+        }
+
+        // Etapas
+        if (etapas.length > 0) {
+            // Nueva página si es necesario
+            if (yPos > 220) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            doc.setFontSize(16);
+            doc.text('ETAPAS DEL PROYECTO', 20, yPos);
+            yPos += 10;
+
+            doc.setFontSize(12);
+            etapas.forEach((etapa, index) => {
+                if (yPos > 250) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                const estado = etapa.completada ? ' (Completada)' : '';
+                doc.text(`${index + 1}. ${etapa.texto}${estado}`, 20, yPos);
+                yPos += 7;
+                doc.text(`   Fecha: ${etapa.fecha}`, 25, yPos);
+                yPos += 10;
+            });
+        }
+
+        // Guardar PDF
+        doc.save(`CineVida_${nombre}_${new Date().toISOString().split('T')[0]}.pdf`);
+
+        mostrarToast('success', '📄 PDF generado exitosamente');
+
+        // Verificar logro
+        if (!logros.proyectoGuardado) {
+            verificarLogro('proyectoGuardado');
+        }
+    } else {
+        mostrarToast('warning', 'La funcionalidad de PDF requiere la biblioteca jsPDF.');
+    }
+}
+
+// Función para cargar proyecto
+function cargarProyecto() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+            try {
+                const data = JSON.parse(event.target.result);
+                cargarDatosProyecto(data);
+                mostrarToast('success', '✅ ¡Proyecto cargado exitosamente!');
+            } catch (error) {
+                console.error('Error al cargar el archivo:', error);
+                mostrarToast('danger', '❌ Error al cargar el archivo. Asegúrate de que sea un archivo válido de CineVida.');
+            }
+        };
+
+        reader.readAsText(file);
+    };
+
+    input.click();
+}
+
+// Función para cargar datos del proyecto
+function cargarDatosProyecto(data) {
+    // Cargar datos en los campos
+    document.getElementById('nombre').value = data.nombre || '';
+    document.getElementById('edad').value = data.edad || '';
+    document.getElementById('profesion').value = data.profesion || '';
+    document.getElementById('metaCorto').value = data.metas?.corto || '';
+    document.getElementById('metaMedio').value = data.metas?.medio || '';
+    document.getElementById('metaLargo').value = data.metas?.largo || '';
+    document.getElementById('vision').value = data.vision || '';
+    document.getElementById('frase').value = data.frase || '';
+
+    // Cargar etapas
+    etapas = data.etapas || [];
+    document.getElementById('timeline').innerHTML = '';
+    etapas.forEach(etapa => mostrarEtapa(etapa));
+
+    // Cargar emoción seleccionada
+    if (data.emocion) {
+        selectedEmotion = data.emocion;
+        document.querySelectorAll('.emotion-btn').forEach(btn => {
+            if (btn.getAttribute('data-emotion') === data.emocion) {
+                btn.classList.add('active');
+            }
+        });
+    }
+
+    // Actualizar fecha de inicio si existe
+    if (data.fechaInicio) {
+        projectData.fechaInicio = data.fechaInicio;
+    }
+
+    updateProgress();
+}
+
+// Función para compartir en redes
+function compartirRedes() {
+    const nombre = document.getElementById('nombre').value || 'alguien especial';
+    const mensaje = `¡${nombre} está creando su película de vida en CineVida! 🎬✨ Una herramienta increíble para visualizar y planificar el futuro.`;
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'Mi Película de Vida - CineVida',
+            text: mensaje,
+            url: window.location.href
+        }).catch(err => console.log('Error al compartir:', err));
+    } else {
+        // Fallback: copiar al portapapeles
+        navigator.clipboard.writeText(mensaje + '\n\n' + window.location.href)
+            .then(() => {
+                mostrarToast('success', '📱 Enlace copiado al portapapeles. ¡Pégalo donde quieras compartirlo!');
+            })
+            .catch(err => {
+                alert('📱 ' + mensaje + '\n\n¡Copia este mensaje y compártelo con tus amigos!');
+            });
+    }
+}
+
+// Función de celebración
+function celebrar() {
+    for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+            const emoji = document.createElement('div');
+            emoji.className = 'floating-emoji';
+            emoji.textContent = ['🎉', '🎊', '✨', '🌟', '💫', '🎯', '🏆'][Math.floor(Math.random() * 7)];
+            emoji.style.left = Math.random() * window.innerWidth + 'px';
+            emoji.style.top = Math.random() * window.innerHeight + 'px';
+            document.body.appendChild(emoji);
+
+            setTimeout(() => emoji.remove(), 5000);
+        }, i * 100);
+    }
+}
+
+// Cambiar frase motivacional
+function cambiarFraseMotivacional() {
+    const quote = document.getElementById('quote');
+    quote.textContent = frases[Math.floor(Math.random() * frases.length)];
+}
+
+// Actualizar reproductor de música
+function actualizarReproductorMusica(genero) {
+    const musicPlayer = document.getElementById('musicPlayer');
+
+    if (genero && musicOptions[genero]) {
+        const musica = musicOptions[genero];
+        let musicHTML = `
+            <div class="music-player">
+                <div class="music-info">
+                    <img src="${musica.thumbnail}" alt="${musica.name}" class="music-thumbnail">
+                    <div>
+                        <h6 class="mb-0">${musica.name}</h6>
+                        <small class="text-muted">Reproduciendo desde YouTube</small>
+                    </div>
+                </div>
+                <div class="ratio ratio-16x9">
+                    <iframe src="${musica.url}?autoplay=1&modestbranding=1&rel=0" 
+                             frameborder="0" 
+                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                             allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        `;
+        musicPlayer.innerHTML = musicHTML;
+    } else {
+        musicPlayer.innerHTML = '';
+    }
+}
+
+// Crear partículas de fondo
+function crearParticula() {
+    const particula = document.createElement('div');
+    particula.style.position = 'fixed';
+    particula.style.width = '4px';
+    particula.style.height = '4px';
+    particula.style.background = 'rgba(255, 255, 255, 0.8)';
+    particula.style.borderRadius = '50%';
+    particula.style.pointerEvents = 'none';
+    particula.style.left = Math.random() * window.innerWidth + 'px';
+    particula.style.top = window.innerHeight + 'px';
+    particula.style.zIndex = '1';
+
+    document.body.appendChild(particula);
+
+    let velocidad = 1 + Math.random() * 3;
+    let posY = window.innerHeight;
+
+    const animarParticula = setInterval(() => {
+        posY -= velocidad;
+        particula.style.top = posY + 'px';
+        particula.style.opacity = posY / window.innerHeight;
+
+        if (posY < -10) {
+            clearInterval(animarParticula);
+            particula.remove();
+        }
+    }, 20);
+}
+
+// Verificar logro
+function verificarLogro(tipo) {
+    if (!logros[tipo]) {
+        logros[tipo] = true;
+        mostrarLogro(tipo);
+    }
+}
+
+// Mostrar logro
+function mostrarLogro(tipo) {
+    const mensajes = {
+        primeraMeta: '🏆 ¡Primera Meta Establecida!',
+        cincoEtapas: '⭐ ¡5 Etapas Creadas!',
+        peliculaCreada: '🎬 ¡Película Creada!',
+        proyectoGuardado: '💾 ¡Proyecto Guardado!'
+    };
+
+    if (mensajes[tipo]) {
+        mostrarToast('info', mensajes[tipo]);
+    }
+}
+
+// Mostrar toast de Bootstrap
+function mostrarToast(tipo, mensaje) {
+    // Crear elemento toast
+    const toastContainer = document.createElement('div');
+    toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast align-items-center text-bg-${tipo} border-0`;
+    toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'assertive');
+    toastEl.setAttribute('aria-atomic', 'true');
+
+    toastEl.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${mensaje}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+
+    toastContainer.appendChild(toastEl);
+    document.body.appendChild(toastContainer);
+
+    // Inicializar y mostrar toast
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+
+    // Eliminar toast después de que se oculte
+    toastEl.addEventListener('hidden.bs.toast', function() {
+        toastContainer.remove();
+    });
+}
+
+// Modo oscuro
+function toggleDarkMode() {
+    const body = document.body;
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const icon = darkModeToggle.querySelector('i');
+
+    if (body.classList.contains('dark-mode')) {
+        body.classList.remove('dark-mode');
+        icon.classList.remove('bi-sun');
+        icon.classList.add('bi-moon');
+        darkModeToggle.style.background = 'rgba(255, 255, 255, 0.2)';
+        darkModeToggle.style.borderColor = 'white';
+    } else {
+        body.classList.add('dark-mode');
+        icon.classList.remove('bi-moon');
+        icon.classList.add('bi-sun');
+        darkModeToggle.style.background = 'rgba(0, 0, 0, 0.2)';
+        darkModeToggle.style.borderColor = '#e9ecef';
+    }
+}
+
+// Autoguardado
+function autoguardar() {
+    const nombre = document.getElementById('nombre').value;
+    if (nombre && etapas.length > 0) {
+        projectData.nombre = nombre;
+        projectData.etapas = etapas;
+        localStorage.setItem('cineVidaAutoguardado', JSON.stringify(projectData));
+    }
+}
+
+// Cargar autoguardado al iniciar
+function cargarAutoguardado() {
+    const autoguardado = localStorage.getItem('cineVidaAutoguardado');
+    if (autoguardado) {
+        try {
+            const data = JSON.parse(autoguardado);
+            if (confirm('¿Deseas recuperar tu último proyecto autoguardado?')) {
+                cargarDatosProyecto(data);
+            }
+        } catch (error) {
+            console.error('Error al cargar autoguardado:', error);
+        }
+    }
+}
+
+// Llamar a cargar autoguardado al iniciar
+window.addEventListener('load', cargarAutoguardado);
