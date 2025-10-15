@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineVida - Tu Película de Proyecto de Vida</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Cursor personalizado -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-circle"></div>
+
+    <!-- Floating Emojis -->
+    <div class="floating-emoji" style="top: 10%; left: 5%;">✨</div>
+    <div class="floating-emoji" style="top: 20%; right: 10%;">🌟</div>
+    <div class="floating-emoji" style="bottom: 20%; left: 8%;">💫</div>
+    <div class="floating-emoji" style="bottom: 30%; right: 5%;">⭐</div>
+
+    <!-- Dark Mode Toggle -->
+    <button id="darkModeToggle" class="btn position-fixed top-0 end-0 m-3 rounded-circle" style="z-index: 1000; width: 50px; height: 50px; background: rgba(255, 255, 255, 0.2); border: 2px solid white;">
+        <i class="bi bi-moon text-white"></i>
+    </button>
+
+    <div class="main-container py-4">
+        <header class="app-header" data-aos="fade-down">
+            <h1 class="app-title">🎬 CineVida</h1>
+            <p class="app-subtitle">Crea la película de tu proyecto de vida</p>
+        </header>
+
+        <div class="content-card p-4 p-md-5" data-aos="fade-up">
+            <!-- Información Personal -->
+            <div class="section mb-4 scroll-animate">
+                <h2 class="section-title">
+                    <i class="bi bi-person-circle"></i>
+                    Información Personal
+                </h2>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <input type="text" id="nombre" class="form-control" placeholder="Tu nombre completo">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="number" id="edad" class="form-control" placeholder="Tu edad">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="text" id="profesion" class="form-control" placeholder="Profesión o área de estudio">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metas y Sueños -->
+            <div class="section mb-4 scroll-animate">
+                <h2 class="section-title">
+                    <i class="bi bi-bullseye"></i>
+                    Metas y Sueños
+                </h2>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <input type="text" id="metaCorto" class="form-control" placeholder="Meta a corto plazo (1 año)">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="text" id="metaMedio" class="form-control" placeholder="Meta a mediano plazo (3-5 años)">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="text" id="metaLargo" class="form-control" placeholder="Meta a largo plazo (10+ años)">
+                    </div>
+                </div>
+                <textarea id="vision" class="form-control" rows="3" placeholder="Describe tu visión de vida ideal..."></textarea>
+            </div>
+
+            <!-- Estado Emocional -->
+            <div class="section mb-4 scroll-animate">
+                <h2 class="section-title">
+                    <i class="bi bi-emoji-smile"></i>
+                    Estado Emocional Actual
+                </h2>
+                <div class="emotion-selector">
+                    <button class="emotion-btn" data-emotion="😊 Feliz">😊 Feliz</button>
+                    <button class="emotion-btn" data-emotion="💪 Motivado">💪 Motivado</button>
+                    <button class="emotion-btn" data-emotion="🤔 Reflexivo">🤔 Reflexivo</button>
+                    <button class="emotion-btn" data-emotion="😰 Ansioso">😰 Ansioso</button>
+                    <button class="emotion-btn" data-emotion="🎯 Enfocado">🎯 Enfocado</button>
+                    <button class="emotion-btn" data-emotion="✨ Esperanzado">✨ Esperanzado</button>
+                </div>
+            </div>
+
+            <!-- Frase Motivacional -->
+            <div class="section mb-4 scroll-animate">
+                <h2 class="section-title">
+                    <i class="bi bi-chat-quote"></i>
+                    Tu Frase Motivacional
+                </h2>
+                <input type="text" id="frase" class="form-control" placeholder="Escribe una frase que te inspire...">
+            </div>
+
+            <!-- Música de Fondo -->
+            <div class="section mb-4 scroll-animate">
+                <h2 class="section-title">
+                    <i class="bi bi-music-note-beamed"></i>
+                    Música Inspiracional
+                </h2>
+                <select id="musicGenre" class="form-select">
+                    <option value="">Selecciona un género musical</option>
+                    <option value="epico">Épico/Cinematográfico</option>
+                    <option value="motivacional">Motivacional</option>
+                    <option value="relajante">Relajante</option>
+                    <option value="energetico">Energético</option>
+                </select>
+                <div id="musicPlayer" class="mt-3"></div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="text-center my-4" data-aos="zoom-in">
+                <button class="btn btn-primary me-2 mb-2" id="agregarEtapaBtn">
+                    <i class="bi bi-plus-circle"></i> Agregar Etapa
+                </button>
+                <button class="btn btn-primary me-2 mb-2" id="crearPeliculaBtn">
+                    <i class="bi bi-camera-reels"></i> Crear Mi Película
+                </button>
+                <button class="btn btn-primary me-2 mb-2" id="verProgresoBtn">
+                    <i class="bi bi-graph-up"></i> Ver Progreso
+                </button>
+                <button class="btn btn-primary me-2 mb-2" id="guardarProyectoBtn">
+                    <i class="bi bi-file-earmark-pdf"></i> Guardar como PDF
+                </button>
+                <button class="btn btn-primary me-2 mb-2" id="cargarProyectoBtn">
+                    <i class="bi bi-folder-open"></i> Cargar Proyecto
+                </button>
+                <button class="btn btn-primary mb-2" id="compartirBtn">
+                    <i class="bi bi-share"></i> Compartir
+                </button>
+            </div>
+
+            <!-- Barra de Progreso -->
+            <div class="progress my-4">
+                <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%;">0%</div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="row g-3 mb-4" id="stats" style="display: none;">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalMetas">0/3</div>
+                        <div class="stat-label">Metas Completadas</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number" id="etapasCreadas">0</div>
+                        <div class="stat-label">Etapas Creadas</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number" id="diasTranscurridos">0</div>
+                        <div class="stat-label">Días en el Viaje</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline de Etapas -->
+            <div class="timeline" id="timeline"></div>
+
+            <!-- Vista Previa de la Película -->
+            <div class="movie-preview" id="moviePreview">
+                <h2 class="section-title">
+                    <i class="bi bi-camera-reels"></i>
+                    Tu Película de Vida
+                </h2>
+                <div id="movieContent"></div>
+            </div>
+
+            <!-- Frase Motivacional Aleatoria -->
+            <div class="motivational-quote" id="quote">
+                "El futuro pertenece a quienes creen en la belleza de sus sueños" - Eleanor Roosevelt
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AOS Animation Library -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- JavaScript Personalizado -->
+    <script src="script.js"></script>
+</body>
+</html>
