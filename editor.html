@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineVida - Editor de Video Profesional</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Sortable.js para drag & drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <!-- GSAP para animaciones -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-mode">
+    
+    <!-- Barra superior de herramientas -->
+    <div class="top-toolbar">
+        <div class="toolbar-left">
+            <div class="logo">
+                <i class="fas fa-video"></i>
+                <span>CineVida</span>
+            </div>
+            <div class="project-name">
+                <input type="text" id="projectName" placeholder="Mi Proyecto de Vida" value="Mi Proyecto de Vida">
+            </div>
+        </div>
+        
+        <div class="toolbar-center">
+            <button class="tool-btn" id="undoBtn" title="Deshacer">
+                <i class="fas fa-undo"></i>
+            </button>
+            <button class="tool-btn" id="redoBtn" title="Rehacer">
+                <i class="fas fa-redo"></i>
+            </button>
+            <div class="separator"></div>
+            <button class="tool-btn" id="cutBtn" title="Cortar">
+                <i class="fas fa-cut"></i>
+            </button>
+            <button class="tool-btn" id="splitBtn" title="Dividir">
+                <i class="fas fa-scissors"></i>
+            </button>
+            <button class="tool-btn" id="deleteBtn" title="Eliminar">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        
+        <div class="toolbar-right">
+            <button class="tool-btn" id="saveBtn" title="Guardar proyecto">
+                <i class="fas fa-save"></i>
+            </button>
+            <button class="tool-btn" id="loadBtn" title="Cargar proyecto">
+                <i class="fas fa-folder-open"></i>
+            </button>
+            <button class="btn-primary" id="exportBtn">
+                <i class="fas fa-download"></i>
+                Exportar Video
+            </button>
+        </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="main-layout">
+        
+        <!-- Panel izquierdo - Biblioteca de medios -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <h3><i class="fas fa-folder-open"></i> Biblioteca</h3>
+                <button class="collapse-btn" id="collapseLeft">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <div class="panel-tabs">
+                <button class="tab-btn active" data-tab="media">
+                    <i class="fas fa-photo-video"></i> Media
+                </button>
+                <button class="tab-btn" data-tab="audio">
+                    <i class="fas fa-music"></i> Audio
+                </button>
+                <button class="tab-btn" data-tab="text">
+                    <i class="fas fa-font"></i> Texto
+                </button>
+            </div>
+            
+            <div class="tab-content active" id="mediaTab">
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Arrastra archivos aquí</p>
+                    <button class="btn-secondary" id="uploadBtn">
+                        <i class="fas fa-plus"></i> Agregar archivos
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*,video/*" multiple style="display: none;">
+                </div>
+                
+                <div class="media-grid" id="mediaGrid">
+                    <!-- Los archivos subidos aparecerán aquí -->
+                </div>
+                
+                <div class="stock-images">
+                    <h4>Imágenes de archivo</h4>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="stockSearch" placeholder="Buscar imágenes...">
+                    </div>
+                    <div class="stock-grid" id="stockGrid">
+                        <!-- Imágenes de stock -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="audioTab">
+                <div class="audio-library">
+                    <h4>Música de fondo</h4>
+                    <div class="audio-list" id="audioList">
+                        <!-- Audio items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="textTab">
+                <div class="text-presets">
+                    <h4>Plantillas de texto</h4>
+                    <button class="text-preset-btn" data-style="title">
+                        <i class="fas fa-heading"></i> Título
+                    </button>
+                    <button class="text-preset-btn" data-style="subtitle">
+                        <i class="fas fa-text-height"></i> Subtítulo
+                    </button>
+                    <button class="text-preset-btn" data-style="caption">
+                        <i class="fas fa-closed-captioning"></i> Pie de foto
+                    </button>
+                    <button class="text-preset-btn" data-style="quote">
+                        <i class="fas fa-quote-left"></i> Cita
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel central - Vista previa y timeline -->
+        <div class="center-panel">
+            
+            <!-- Vista previa -->
+            <div class="preview-section">
+                <div class="preview-container">
+                    <canvas id="previewCanvas" width="1920" height="1080"></canvas>
+                    <div class="preview-overlay" id="previewOverlay">
+                        <div class="drop-zone">
+                            <i class="fas fa-film"></i>
+                            <p>Arrastra clips a la línea de tiempo para comenzar</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Controles de reproducción -->
+                <div class="playback-controls">
+                    <button class="control-btn" id="playBtn">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="control-btn" id="stopBtn">
+                        <i class="fas fa-stop"></i>
+                    </button>
+                    <div class="time-display">
+                        <span id="currentTime">00:00</span>
+                        <span class="separator">/</span>
+                        <span id="totalTime">00:00</span>
+                    </div>
+                    <div class="volume-control">
+                        <i class="fas fa-volume-up"></i>
+                        <input type="range" id="volumeSlider" min="0" max="100" value="100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline-section">
+                <div class="timeline-header">
+                    <h3><i class="fas fa-layer-group"></i> Línea de tiempo</h3>
+                    <div class="timeline-tools">
+                        <button class="tool-btn" id="zoomInBtn" title="Acercar">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button class="tool-btn" id="zoomOutBtn" title="Alejar">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <button class="tool-btn" id="fitBtn" title="Ajustar">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="timeline-container" id="timelineContainer">
+                    <!-- Regla de tiempo -->
+                    <div class="timeline-ruler" id="timelineRuler">
+                        <div class="playhead" id="playhead"></div>
+                    </div>
+                    
+                    <!-- Pistas de la timeline -->
+                    <div class="timeline-tracks">
+                        <div class="track" data-track="video">
+                            <div class="track-header">
+                                <i class="fas fa-video"></i>
+                                <span>Video</span>
+                                <button class="track-toggle"><i class="fas fa-eye"></i></button>
+                            </div>
+                            <div class="track-content" id="videoTrack">
+                                <!-- Clips de video aquí -->
+                            </div>
+                        </div>
+                        
+                        <div class="track" data-track="images">
+                            <div class="track-header">
+                                <i class="fas fa-image"></i>
+                                <span>Imágenes</span>
+                                <button class="track-toggle"><i class="fas fa-eye"></i></button>
+                            </div>
+                            <div class="track-content" id="imagesTrack">
+                                <!-- Clips de imágenes aquí -->
+                            </div>
+                        </div>
+                        
+                        <div class="track" data-track="text">
+                            <div class="track-header">
+                                <i class="fas fa-font"></i>
+                                <span>Texto</span>
+                                <button class="track-toggle"><i class="fas fa-eye"></i></button>
+                            </div>
+                            <div class="track-content" id="textTrack">
+                                <!-- Clips de texto aquí -->
+                            </div>
+                        </div>
+                        
+                        <div class="track" data-track="audio">
+                            <div class="track-header">
+                                <i class="fas fa-music"></i>
+                                <span>Audio</span>
+                                <button class="track-toggle"><i class="fas fa-volume-up"></i></button>
+                            </div>
+                            <div class="track-content" id="audioTrack">
+                                <!-- Clips de audio aquí -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel derecho - Propiedades y efectos -->
+        <div class="right-panel">
+            <div class="panel-header">
+                <h3><i class="fas fa-sliders-h"></i> Propiedades</h3>
+                <button class="collapse-btn" id="collapseRight">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <div class="properties-content" id="propertiesContent">
+                <div class="no-selection">
+                    <i class="fas fa-hand-pointer"></i>
+                    <p>Selecciona un elemento para editar sus propiedades</p>
+                </div>
+            </div>
+            
+            <!-- Panel de efectos -->
+            <div class="effects-panel">
+                <h4><i class="fas fa-magic"></i> Efectos</h4>
+                <div class="effects-tabs">
+                    <button class="effect-tab active" data-effect-tab="transitions">
+                        <i class="fas fa-random"></i> Transiciones
+                    </button>
+                    <button class="effect-tab" data-effect-tab="filters">
+                        <i class="fas fa-adjust"></i> Filtros
+                    </button>
+                    <button class="effect-tab" data-effect-tab="animations">
+                        <i class="fas fa-running"></i> Animaciones
+                    </button>
+                </div>
+                
+                <div class="effect-content active" id="transitionsContent">
+                    <div class="effect-grid">
+                        <button class="effect-item" data-transition="fade">
+                            <div class="effect-preview fade-preview"></div>
+                            <span>Fade</span>
+                        </button>
+                        <button class="effect-item" data-transition="slide">
+                            <div class="effect-preview slide-preview"></div>
+                            <span>Slide</span>
+                        </button>
+                        <button class="effect-item" data-transition="zoom">
+                            <div class="effect-preview zoom-preview"></div>
+                            <span>Zoom</span>
+                        </button>
+                        <button class="effect-item" data-transition="dissolve">
+                            <div class="effect-preview dissolve-preview"></div>
+                            <span>Dissolve</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="effect-content" id="filtersContent">
+                    <div class="filter-controls">
+                        <div class="control-group">
+                            <label>Brillo</label>
+                            <input type="range" class="filter-slider" id="brightnessSlider" min="-100" max="100" value="0">
+                            <span class="value">0</span>
+                        </div>
+                        <div class="control-group">
+                            <label>Contraste</label>
+                            <input type="range" class="filter-slider" id="contrastSlider" min="-100" max="100" value="0">
+                            <span class="value">0</span>
+                        </div>
+                        <div class="control-group">
+                            <label>Saturación</label>
+                            <input type="range" class="filter-slider" id="saturationSlider" min="-100" max="100" value="0">
+                            <span class="value">0</span>
+                        </div>
+                        <div class="control-group">
+                            <label>Blur</label>
+                            <input type="range" class="filter-slider" id="blurSlider" min="0" max="20" value="0">
+                            <span class="value">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="effect-content" id="animationsContent">
+                    <div class="effect-grid">
+                        <button class="effect-item" data-animation="fadeIn">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>Fade In</span>
+                        </button>
+                        <button class="effect-item" data-animation="fadeOut">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Fade Out</span>
+                        </button>
+                        <button class="effect-item" data-animation="slideIn">
+                            <i class="fas fa-arrow-right"></i>
+                            <span>Slide In</span>
+                        </button>
+                        <button class="effect-item" data-animation="zoomIn">
+                            <i class="fas fa-search-plus"></i>
+                            <span>Zoom In</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de exportación -->
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-download"></i> Exportar Video</h3>
+                <button class="close-btn" id="closeExportModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <div class="option-group">
+                        <label>Resolución</label>
+                        <select id="resolutionSelect">
+                            <option value="1920x1080">1080p (1920x1080)</option>
+                            <option value="1280x720">720p (1280x720)</option>
+                            <option value="3840x2160">4K (3840x2160)</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>Formato</label>
+                        <select id="formatSelect">
+                            <option value="mp4">MP4</option>
+                            <option value="webm">WebM</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>Calidad</label>
+                        <select id="qualitySelect">
+                            <option value="high">Alta</option>
+                            <option value="medium">Media</option>
+                            <option value="low">Baja</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="export-progress" id="exportProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p id="progressText">Exportando... 0%</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelExportBtn">Cancelar</button>
+                <button class="btn-primary" id="startExportBtn">
+                    <i class="fas fa-download"></i> Exportar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>

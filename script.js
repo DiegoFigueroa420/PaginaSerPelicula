@@ -1,823 +1,1863 @@
-// Variables globales
-let etapas = [];
-let selectedEmotion = '';
-let projectData = {
-    nombre: '',
-    edad: '',
-    profesion: '',
-    metas: {},
-    vision: '',
-    emocion: '',
-    frase: '',
-    etapas: [],
-    fechaInicio: new Date().toISOString()
-};
+// ============================================
+// CINEVIDA - EDITOR DE VIDEO PROFESIONAL
+// ============================================
 
-// Frases motivacionales
-const frases = [
-    "El futuro pertenece a quienes creen en la belleza de sus sueños - Eleanor Roosevelt",
-    "El éxito es la suma de pequeños esfuerzos repetidos día tras día - Robert Collier",
-    "No importa lo lento que vayas, siempre y cuando no te detengas - Confucio",
-    "Tu único límite es tu mente - Desconocido",
-    "Los sueños no tienen fecha de caducidad - Desconocido",
-    "Cada día es una nueva oportunidad para cambiar tu vida - Desconocido",
-    "El mejor momento para plantar un árbol fue hace 20 años. El segundo mejor momento es ahora - Proverbio chino",
-    "La vida es 10% lo que te sucede y 90% cómo reaccionas a ello - Charles R. Swindoll"
-];
-
-// Música mejorada con enlaces de YouTube
-const musicOptions = {
-    epico: {
-        name: "Música Épica Cinematográfica",
-        url: "https://www.youtube.com/embed/5g8ykQLYnX0", // Epic Cinematic Music
-        thumbnail: "https://img.youtube.com/vi/5g8ykQLYnX0/hqdefault.jpg"
-    },
-    motivacional: {
-        name: "Música Motivacional",
-        url: "https://www.youtube.com/embed/WNeLUngb-Xg", // Inspiring Music
-        thumbnail: "https://img.youtube.com/vi/WNeLUngb-Xg/hqdefault.jpg"
-    },
-    relajante: {
-        name: "Música Relajante",
-        url: "https://www.youtube.com/embed/1ZYbU82GVz4", // Relaxing Music
-        thumbnail: "https://img.youtube.com/vi/1ZYbU82GVz4/hqdefault.jpg"
-    },
-    energetico: {
-        name: "Música Energética",
-        url: "https://www.youtube.com/embed/3AtDnEC4zak", // Upbeat Music
-        thumbnail: "https://img.youtube.com/vi/3AtDnEC4zak/hqdefault.jpg"
+class AudioManager {
+    constructor() {
+        this.audioElements = new Map();
+        this.currentAudio = null;
+        this.isAudioPlaying = false;
+        this.userInteracted = false;
+        
+        this.setupAudioInteraction();
     }
-};
-
-// Sistema de logros
-const logros = {
-    primeraMeta: false,
-    cincoEtapas: false,
-    peliculaCreada: false,
-    proyectoGuardado: false
-};
-
-// Inicialización
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar AOS
-    AOS.init({
-        duration: 800,
-        once: true
-    });
-
-    // Inicializar cursor personalizado
-    initCustomCursor();
-
-    // Inicializar animaciones de scroll
-    initScrollAnimations();
-
-    // Actualizar progreso inicial
-    updateProgress();
-
-    // Configurar event listeners
-    setupEventListeners();
-
-    // Crear partículas de fondo
-    setInterval(crearParticula, 300);
-
-    // Cambiar frase motivacional automáticamente
-    setInterval(cambiarFraseMotivacional, 10000);
-
-    // Autoguardado
-    setInterval(autoguardar, 30000);
-
-    console.log('🎬 CineVida iniciado correctamente');
-    console.log('✨ ¡Bienvenido a tu creador de películas de vida!');
-});
-
-// Cursor personalizado
-function initCustomCursor() {
-    const cursorDot = document.querySelector('.cursor-dot');
-    const cursorCircle = document.querySelector('.cursor-circle');
-
-    document.addEventListener('mousemove', (e) => {
-        cursorDot.style.left = e.clientX + 'px';
-        cursorDot.style.top = e.clientY + 'px';
-
-        setTimeout(() => {
-            cursorCircle.style.left = e.clientX - 20 + 'px';
-            cursorCircle.style.top = e.clientY - 20 + 'px';
-        }, 100);
-    });
-
-    // Efectos al pasar sobre elementos interactivos
-    const interactiveElements = document.querySelectorAll('button, input, select, textarea, .emotion-btn, .timeline-item');
-
-    interactiveElements.forEach(el => {
-        el.addEventListener('mouseenter', () => {
-            cursorDot.style.transform = 'scale(1.5)';
-            cursorCircle.style.transform = 'scale(1.2)';
-            cursorCircle.style.borderColor = '#FFD700';
-        });
-
-        el.addEventListener('mouseleave', () => {
-            cursorDot.style.transform = 'scale(1)';
-            cursorCircle.style.transform = 'scale(1)';
-            cursorCircle.style.borderColor = 'var(--primary-color)';
-        });
-    });
-}
-
-// Animaciones de scroll
-function initScrollAnimations() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-            }
-        });
-    }, {
-        threshold: 0.1
-    });
-
-    document.querySelectorAll('.scroll-animate').forEach(el => {
-        observer.observe(el);
-    });
-}
-
-// Configurar event listeners
-function setupEventListeners() {
-    // Botones de emoción
-    document.querySelectorAll('.emotion-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            selectEmotion(this);
-        });
-    });
-
-    // Botones principales
-    document.getElementById('agregarEtapaBtn').addEventListener('click', agregarEtapa);
-    document.getElementById('crearPeliculaBtn').addEventListener('click', crearPelicula);
-    document.getElementById('verProgresoBtn').addEventListener('click', verProgreso);
-    document.getElementById('guardarProyectoBtn').addEventListener('click', guardarProyectoPDF);
-    document.getElementById('cargarProyectoBtn').addEventListener('click', cargarProyecto);
-    document.getElementById('compartirBtn').addEventListener('click', compartirRedes);
-    document.getElementById('darkModeToggle').addEventListener('click', toggleDarkMode);
-
-    // Selector de música
-    document.getElementById('musicGenre').addEventListener('change', function() {
-        actualizarReproductorMusica(this.value);
-    });
-
-    // Actualizar progreso al cambiar inputs
-    document.querySelectorAll('input, textarea').forEach(element => {
-        element.addEventListener('input', updateProgress);
-    });
-}
-
-// Función para seleccionar emoción
-function selectEmotion(btn) {
-    document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedEmotion = btn.getAttribute('data-emotion');
-    updateProgress();
-}
-
-// Función para agregar etapa
-function agregarEtapa() {
-    const etapaText = prompt('Describe esta etapa de tu vida:');
-    if (etapaText) {
-        const fechaEtapa = prompt('¿Cuándo planeas alcanzar esta etapa? (ej: 2025, En 2 años, etc.)');
-        if (fechaEtapa) {
-            const etapa = {
-                id: Date.now(),
-                texto: etapaText,
-                fecha: fechaEtapa,
-                completada: false
-            };
-            etapas.push(etapa);
-            mostrarEtapa(etapa);
-            updateProgress();
-            actualizarEstadisticas();
-
-            // Verificar logro de 5 etapas
-            if (etapas.length >= 5 && !logros.cincoEtapas) {
-                verificarLogro('cincoEtapas');
-            }
-        }
-    }
-}
-
-// Función para mostrar etapa en el timeline
-function mostrarEtapa(etapa) {
-    const timeline = document.getElementById('timeline');
-    const etapaDiv = document.createElement('div');
-    etapaDiv.className = 'timeline-item scroll-animate';
-    etapaDiv.id = `etapa-${etapa.id}`;
-    etapaDiv.innerHTML = `
-        <h4>${etapa.texto}</h4>
-        <p class="mb-2"><i class="bi bi-calendar-event"></i> ${etapa.fecha}</p>
-        <div>
-            <button class="btn btn-sm btn-success me-1" onclick="marcarEtapaCompletada(${etapa.id})">
-                <i class="bi bi-check-circle"></i> Completar
-            </button>
-            <button class="btn btn-sm btn-warning me-1" onclick="editarEtapa(${etapa.id})">
-                <i class="bi bi-pencil"></i> Editar
-            </button>
-            <button class="btn btn-sm btn-danger" onclick="eliminarEtapa(${etapa.id})">
-                <i class="bi bi-trash"></i> Eliminar
-            </button>
-        </div>
-    `;
-    timeline.appendChild(etapaDiv);
-
-    // Activar animación
-    setTimeout(() => {
-        etapaDiv.classList.add('visible');
-    }, 100);
-}
-
-// Función para marcar etapa como completada
-function marcarEtapaCompletada(id) {
-    const etapa = etapas.find(e => e.id === id);
-    if (etapa) {
-        etapa.completada = !etapa.completada;
-        const etapaDiv = document.getElementById(`etapa-${id}`);
-        if (etapa.completada) {
-            etapaDiv.style.opacity = '0.7';
-            etapaDiv.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
-        } else {
-            etapaDiv.style.opacity = '1';
-            etapaDiv.style.background = 'linear-gradient(135deg, var(--primary-color), var(--secondary-color))';
-        }
-        actualizarEstadisticas();
-    }
-}
-
-// Función para editar etapa
-function editarEtapa(id) {
-    const etapa = etapas.find(e => e.id === id);
-    if (etapa) {
-        const nuevoTexto = prompt('Edita esta etapa:', etapa.texto);
-        if (nuevoTexto !== null) {
-            etapa.texto = nuevoTexto;
-            const nuevaFecha = prompt('Edita la fecha:', etapa.fecha);
-            if (nuevaFecha !== null) {
-                etapa.fecha = nuevaFecha;
-                actualizarVistaEtapa(etapa);
-            }
-        }
-    }
-}
-
-// Función para actualizar vista de etapa
-function actualizarVistaEtapa(etapa) {
-    const etapaDiv = document.getElementById(`etapa-${etapa.id}`);
-    if (etapaDiv) {
-        etapaDiv.querySelector('h4').textContent = etapa.texto;
-        etapaDiv.querySelector('p').innerHTML = `<i class="bi bi-calendar-event"></i> ${etapa.fecha}`;
-    }
-}
-
-// Función para eliminar etapa
-function eliminarEtapa(id) {
-    if (confirm('¿Estás seguro de eliminar esta etapa?')) {
-        etapas = etapas.filter(e => e.id !== id);
-        document.getElementById(`etapa-${id}`).remove();
-        updateProgress();
-        actualizarEstadisticas();
-    }
-}
-
-// Función para crear película
-function crearPelicula() {
-    const nombre = document.getElementById('nombre').value;
-    const edad = document.getElementById('edad').value;
-    const profesion = document.getElementById('profesion').value;
-    const metaCorto = document.getElementById('metaCorto').value;
-    const metaMedio = document.getElementById('metaMedio').value;
-    const metaLargo = document.getElementById('metaLargo').value;
-    const vision = document.getElementById('vision').value;
-    const frase = document.getElementById('frase').value;
-
-    if (!nombre || etapas.length === 0) {
-        alert('Por favor, completa tu nombre y agrega al menos una etapa');
-        return;
-    }
-
-    const moviePreview = document.getElementById('moviePreview');
-    const movieContent = document.getElementById('movieContent');
-
-    let peliculaHTML = `
-        <div class="text-center p-4 mb-4" style="background: linear-gradient(135deg, #f5f5f5, #e0e0e0); border-radius: 10px;">
-            <h1 class="display-4" style="color: var(--secondary-color);">🎬 "${nombre}: Una Historia de Éxito"</h1>
-            <p class="lead" style="font-style: italic; color: #666;">Una producción de CineVida</p>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="p-3 mb-3 rounded" style="background: linear-gradient(135deg, #f5f5f5, #e0e0e0);">
-                    <h3><i class="bi bi-person-circle"></i> Protagonista</h3>
-                    <p><strong>${nombre}</strong>, ${edad} años</p>
-                    <p>Profesión: ${profesion}</p>
-                    <p>Estado emocional: ${selectedEmotion || 'En proceso de descubrimiento'}</p>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="p-3 mb-3 rounded" style="background: #f0f8ff;">
-                    <h3><i class="bi bi-bullseye"></i> El Viaje de las Metas</h3>
-                    <p><i class="bi bi-1-circle"></i> <strong>Acto I - El Comienzo (1 año):</strong> ${metaCorto}</p>
-                    <p><i class="bi bi-2-circle"></i> <strong>Acto II - El Desarrollo (3-5 años):</strong> ${metaMedio}</p>
-                    <p><i class="bi bi-3-circle"></i> <strong>Acto III - El Clímax (10+ años):</strong> ${metaLargo}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="p-3 mb-4 rounded" style="background: #fff3cd;">
-            <h3><i class="bi bi-stars"></i> La Visión</h3>
-            <p class="mb-0" style="font-style: italic;">"${vision}"</p>
-        </div>
-
-        <div class="p-3 mb-4 rounded" style="background: #d4edda;">
-            <h3><i class="bi bi-camera-reels"></i> Escenas de la Vida</h3>
-    `;
-
-    etapas.forEach((etapa, index) => {
-        const estado = etapa.completada ? '<span class="badge bg-success ms-2">Completada</span>' : '';
-        peliculaHTML += `
-            <div class="p-3 mb-2 rounded" style="background: white; border-left: 4px solid var(--primary-color);">
-                <strong>Escena ${index + 1}:</strong> ${etapa.texto} ${estado}
-                <br><small><i class="bi bi-calendar-event"></i> ${etapa.fecha}</small>
-            </div>
-        `;
-    });
-
-    peliculaHTML += `
-        </div>
-        <div class="text-center p-4 rounded" style="background: linear-gradient(135deg, var(--accent-color), #FFA500);">
-            <h3 class="text-white"><i class="bi bi-quote"></i> Frase que Guía el Camino</h3>
-            <p class="text-white fs-5 fst-italic">"${frase || 'El futuro está en mis manos'}"</p>
-        </div>
-        <div class="text-center mt-4">
-            <h1 class="display-1">🎬 FIN 🎬</h1>
-            <p class="text-muted">Pero esto es solo el comienzo...</p>
-        </div>
-    `;
-
-    movieContent.innerHTML = peliculaHTML;
-    moviePreview.classList.add('show');
-
-    // Animación de aparición
-    moviePreview.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    // Efectos de celebración
-    celebrar();
-
-    // Verificar logro
-    if (!logros.peliculaCreada) {
-        verificarLogro('peliculaCreada');
-    }
-}
-
-// Función para actualizar progreso
-function updateProgress() {
-    const inputs = document.querySelectorAll('input, textarea');
-    let filled = 0;
-    let total = inputs.length + 1; // +1 for emotion
-
-    inputs.forEach(input => {
-        if (input.value.trim()) filled++;
-    });
-
-    if (selectedEmotion) filled++;
-
-    const percentage = Math.round((filled / total) * 100);
-    const progressBar = document.getElementById('progressBar');
-    progressBar.style.width = percentage + '%';
-    progressBar.textContent = percentage + '%';
-
-    // Verificar logro de primera meta
-    const metaCorto = document.getElementById('metaCorto').value;
-    if (metaCorto && !logros.primeraMeta) {
-        verificarLogro('primeraMeta');
-    }
-}
-
-// Función para ver progreso
-function verProgreso() {
-    const stats = document.getElementById('stats');
-    stats.style.display = 'grid';
-    actualizarEstadisticas();
-}
-
-// Función para actualizar estadísticas
-function actualizarEstadisticas() {
-    const metas = [
-        document.getElementById('metaCorto').value,
-        document.getElementById('metaMedio').value,
-        document.getElementById('metaLargo').value
-    ];
-    const metasCompletas = metas.filter(meta => meta).length;
-
-    document.getElementById('totalMetas').textContent = `${metasCompletas}/3`;
-    document.getElementById('etapasCreadas').textContent = etapas.length;
-
-    const fechaInicio = new Date(projectData.fechaInicio || new Date());
-    const hoy = new Date();
-    const dias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
-    document.getElementById('diasTranscurridos').textContent = dias;
-}
-
-// Función para guardar proyecto como PDF
-function guardarProyectoPDF() {
-    const nombre = document.getElementById('nombre').value || 'Usuario';
-
-    // Verificar si jsPDF está disponible
-    if (typeof window.jspdf !== 'undefined') {
-        const { jsPDF } = window.jspdf;
-
-        // Crear PDF
-        const doc = new jsPDF();
-        let yPos = 20;
-
-        // Título
-        doc.setFontSize(22);
-        doc.setTextColor(102, 126, 234);
-        doc.text(`"${nombre}: Una Historia de Éxito"`, 105, yPos, { align: 'center' });
-        yPos += 15;
-
-        // Subtítulo
-        doc.setFontSize(12);
-        doc.setTextColor(128, 128, 128);
-        doc.text('Una producción de CineVida', 105, yPos, { align: 'center' });
-        yPos += 20;
-
-        // Información personal
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text('INFORMACIÓN PERSONAL', 20, yPos);
-        yPos += 10;
-
-        doc.setFontSize(12);
-        doc.text(`Nombre: ${nombre}`, 20, yPos);
-        yPos += 7;
-        doc.text(`Edad: ${document.getElementById('edad').value || 'No especificada'}`, 20, yPos);
-        yPos += 7;
-        doc.text(`Profesión: ${document.getElementById('profesion').value || 'No especificada'}`, 20, yPos);
-        yPos += 15;
-
-        // Metas
-        doc.setFontSize(16);
-        doc.text('METAS Y SUEÑOS', 20, yPos);
-        yPos += 10;
-
-        doc.setFontSize(12);
-        doc.text(`• Corto plazo (1 año): ${document.getElementById('metaCorto').value || 'No especificada'}`, 20, yPos);
-        yPos += 7;
-        doc.text(`• Mediano plazo (3-5 años): ${document.getElementById('metaMedio').value || 'No especificada'}`, 20, yPos);
-        yPos += 7;
-        doc.text(`• Largo plazo (10+ años): ${document.getElementById('metaLargo').value || 'No especificada'}`, 20, yPos);
-        yPos += 15;
-
-        // Visión
-        const vision = document.getElementById('vision').value;
-        if (vision) {
-            doc.setFontSize(16);
-            doc.text('VISIÓN DE VIDA', 20, yPos);
-            yPos += 10;
-
-            doc.setFontSize(12);
-            const visionLines = doc.splitTextToSize(`"${vision}"`, 170);
-            doc.text(visionLines, 20, yPos);
-            yPos += visionLines.length * 7 + 10;
-        }
-
-        // Estado emocional
-        if (selectedEmotion) {
-            doc.setFontSize(16);
-            doc.text('ESTADO EMOCIONAL', 20, yPos);
-            yPos += 10;
-
-            doc.setFontSize(12);
-            doc.text(selectedEmotion, 20, yPos);
-            yPos += 15;
-        }
-
-        // Frase motivacional
-        const frase = document.getElementById('frase').value;
-        if (frase) {
-            doc.setFontSize(16);
-            doc.text('FRASE MOTIVACIONAL', 20, yPos);
-            yPos += 10;
-
-            doc.setFontSize(12);
-            doc.text(`"${frase}"`, 20, yPos);
-            yPos += 15;
-        }
-
-        // Etapas
-        if (etapas.length > 0) {
-            // Nueva página si es necesario
-            if (yPos > 220) {
-                doc.addPage();
-                yPos = 20;
-            }
-
-            doc.setFontSize(16);
-            doc.text('ETAPAS DEL PROYECTO', 20, yPos);
-            yPos += 10;
-
-            doc.setFontSize(12);
-            etapas.forEach((etapa, index) => {
-                if (yPos > 250) {
-                    doc.addPage();
-                    yPos = 20;
+    
+    setupAudioInteraction() {
+        // Permitir reproducción después de la primera interacción del usuario
+        const enableAudio = () => {
+            if (!this.userInteracted) {
+                this.userInteracted = true;
+                console.log('🎵 Audio activado - El usuario ha interactuado con la página');
+                
+                // Mostrar notificación visual
+                if (window.editor && window.editor.showToast) {
+                    window.editor.showToast('success', '✅ Audio activado. Ya puedes reproducir música.');
                 }
-
-                const estado = etapa.completada ? ' (Completada)' : '';
-                doc.text(`${index + 1}. ${etapa.texto}${estado}`, 20, yPos);
-                yPos += 7;
-                doc.text(`   Fecha: ${etapa.fecha}`, 25, yPos);
-                yPos += 10;
-            });
-        }
-
-        // Guardar PDF
-        doc.save(`CineVida_${nombre}_${new Date().toISOString().split('T')[0]}.pdf`);
-
-        mostrarToast('success', '📄 PDF generado exitosamente');
-
-        // Verificar logro
-        if (!logros.proyectoGuardado) {
-            verificarLogro('proyectoGuardado');
-        }
-    } else {
-        mostrarToast('warning', 'La funcionalidad de PDF requiere la biblioteca jsPDF.');
-    }
-}
-
-// Función para cargar proyecto
-function cargarProyecto() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-
-    input.onchange = function(e) {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-
-        reader.onload = function(event) {
-            try {
-                const data = JSON.parse(event.target.result);
-                cargarDatosProyecto(data);
-                mostrarToast('success', '✅ ¡Proyecto cargado exitosamente!');
-            } catch (error) {
-                console.error('Error al cargar el archivo:', error);
-                mostrarToast('danger', '❌ Error al cargar el archivo. Asegúrate de que sea un archivo válido de CineVida.');
             }
         };
-
-        reader.readAsText(file);
-    };
-
-    input.click();
+        
+        // Escuchar múltiples eventos de interacción
+        document.addEventListener('click', enableAudio);
+        document.addEventListener('touchstart', enableAudio);
+        document.addEventListener('keydown', enableAudio);
+        document.addEventListener('mousedown', enableAudio);
+    }
+    
+    async playAudio(url, element) {
+        console.log('🔊 Intentando reproducir:', url);
+        
+        if (!this.userInteracted) {
+            console.log('❌ Audio bloqueado - Esperando interacción del usuario');
+            if (window.editor && window.editor.showToast) {
+                window.editor.showToast('info', '🎵 Haz clic en cualquier parte de la página para activar el audio');
+            }
+            return false;
+        }
+        
+        // Verificar que la URL sea válida
+        if (!url || url === '' || !url.startsWith('http')) {
+            console.error('❌ URL de audio inválida:', url);
+            if (window.editor && window.editor.showToast) {
+                window.editor.showToast('error', '❌ URL de audio no válida');
+            }
+            return false;
+        }
+        
+        // Si ya está reproduciendo este audio, pausarlo
+        if (this.isAudioPlaying && this.currentAudio === url) {
+            console.log('⏸️ Pausando audio actual');
+            this.pauseAudio();
+            if (element) {
+                element.querySelector('.play-preview i').className = 'fas fa-play';
+                element.classList.remove('playing');
+            }
+            return true;
+        }
+        
+        // Detener audio actual si hay uno reproduciéndose
+        if (this.isAudioPlaying) {
+            console.log('🛑 Deteniendo audio anterior');
+            this.pauseAudio();
+            document.querySelectorAll('.play-preview i').forEach(icon => {
+                icon.className = 'fas fa-play';
+            });
+            document.querySelectorAll('.audio-item.playing').forEach(item => {
+                item.classList.remove('playing');
+            });
+        }
+        
+        try {
+            console.log('🎵 Creando nuevo elemento de audio...');
+            
+            // Crear nuevo elemento de audio
+            const audio = new Audio();
+            audio.src = url;
+            audio.volume = document.getElementById('volumeSlider') ? 
+                          document.getElementById('volumeSlider').value / 100 : 0.7;
+            
+            // Configurar eventos
+            audio.onended = () => {
+                console.log('✅ Audio terminado');
+                if (element) {
+                    element.querySelector('.play-preview i').className = 'fas fa-play';
+                    element.classList.remove('playing');
+                }
+                this.isAudioPlaying = false;
+                this.currentAudio = null;
+            };
+            
+            audio.onerror = (e) => {
+                console.error('❌ Error de audio:', e);
+                if (element) {
+                    element.querySelector('.play-preview i').className = 'fas fa-play';
+                    element.classList.remove('playing');
+                }
+                this.isAudioPlaying = false;
+                this.currentAudio = null;
+                if (window.editor && window.editor.showToast) {
+                    window.editor.showToast('error', '❌ Error al reproducir el audio. Intenta con otra canción.');
+                }
+            };
+            
+            // Intentar reproducir
+            console.log('▶️ Intentando reproducción...');
+            await audio.play();
+            
+            console.log('✅ Audio reproduciéndose correctamente');
+            this.audioElements.set(url, audio);
+            this.currentAudio = url;
+            this.isAudioPlaying = true;
+            
+            if (element) {
+                element.querySelector('.play-preview i').className = 'fas fa-pause';
+                element.classList.add('playing');
+            }
+            
+            if (window.editor && window.editor.showToast) {
+                window.editor.showToast('success', '🎵 Reproduciendo preview...');
+            }
+            
+            return true;
+            
+        } catch (error) {
+            console.error('❌ Error al reproducir audio:', error);
+            if (window.editor && window.editor.showToast) {
+                window.editor.showToast('error', '❌ No se pudo reproducir el audio. Intenta con otra canción.');
+            }
+            return false;
+        }
+    }
+    
+    pauseAudio() {
+        if (this.currentAudio && this.audioElements.has(this.currentAudio)) {
+            const audio = this.audioElements.get(this.currentAudio);
+            audio.pause();
+            audio.currentTime = 0;
+            console.log('⏸️ Audio pausado');
+        }
+        this.isAudioPlaying = false;
+        this.currentAudio = null;
+    }
+    
+    setVolume(volume) {
+        this.audioElements.forEach(audio => {
+            audio.volume = volume;
+        });
+        console.log('🔊 Volumen ajustado a:', volume);
+    }
+    
+    // Reproducir audio en la timeline durante la edición
+    playTimelineAudio(clip, currentTime) {
+        if (!this.userInteracted) return;
+        
+        const clipStart = clip.startTime;
+        const clipEnd = clip.startTime + clip.duration;
+        
+        // Si el tiempo actual está dentro del rango del clip de audio
+        if (currentTime >= clipStart && currentTime <= clipEnd && clip.url) {
+            // Si no está reproduciendo o es un audio diferente
+            if (!this.isAudioPlaying || this.currentAudio !== clip.url) {
+                console.log('🎵 Reproduciendo audio de timeline:', clip.name);
+                this.playAudio(clip.url, null);
+            }
+        } else {
+            // Si el tiempo actual está fuera del clip, pausar
+            if (this.isAudioPlaying && this.currentAudio === clip.url) {
+                this.pauseAudio();
+            }
+        }
+    }
 }
 
-// Función para cargar datos del proyecto
-function cargarDatosProyecto(data) {
-    // Cargar datos en los campos
-    document.getElementById('nombre').value = data.nombre || '';
-    document.getElementById('edad').value = data.edad || '';
-    document.getElementById('profesion').value = data.profesion || '';
-    document.getElementById('metaCorto').value = data.metas?.corto || '';
-    document.getElementById('metaMedio').value = data.metas?.medio || '';
-    document.getElementById('metaLargo').value = data.metas?.largo || '';
-    document.getElementById('vision').value = data.vision || '';
-    document.getElementById('frase').value = data.frase || '';
-
-    // Cargar etapas
-    etapas = data.etapas || [];
-    document.getElementById('timeline').innerHTML = '';
-    etapas.forEach(etapa => mostrarEtapa(etapa));
-
-    // Cargar emoción seleccionada
-    if (data.emocion) {
-        selectedEmotion = data.emocion;
-        document.querySelectorAll('.emotion-btn').forEach(btn => {
-            if (btn.getAttribute('data-emotion') === data.emocion) {
-                btn.classList.add('active');
+class VideoEditor {
+    constructor() {
+        this.timeline = {
+            clips: [],
+            duration: 60,
+            currentTime: 0,
+            zoom: 1,
+            playing: false
+        };
+        
+        this.project = {
+            name: 'Mi Proyecto de Vida',
+            clips: [],
+            resolution: { width: 1920, height: 1080 },
+            fps: 30
+        };
+        
+        this.mediaLibrary = [];
+        this.loadedImages = new Map();
+        this.selectedClip = null;
+        this.history = {
+            past: [],
+            future: []
+        };
+        
+        // Sistema de audio mejorado
+        this.audioManager = new AudioManager();
+        
+        this.canvas = document.getElementById('previewCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        
+        this.animationFrame = null;
+        
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.setupDragAndDrop();
+        this.setupTabs();
+        this.loadStockImages();
+        this.loadDefaultMusic();
+        this.startAutoSave();
+        this.renderPreview();
+        
+        console.log('🎬 CineVida Editor inicializado');
+        this.showToast('success', '¡Editor listo! Arrastra imágenes para comenzar');
+    }
+    
+    setupEventListeners() {
+        // Top toolbar
+        document.getElementById('undoBtn').addEventListener('click', () => this.undo());
+        document.getElementById('redoBtn').addEventListener('click', () => this.redo());
+        document.getElementById('splitBtn').addEventListener('click', () => this.splitClip());
+        document.getElementById('deleteBtn').addEventListener('click', () => this.deleteClip());
+        document.getElementById('saveBtn').addEventListener('click', () => this.saveProject());
+        document.getElementById('loadBtn').addEventListener('click', () => this.loadProject());
+        document.getElementById('exportBtn').addEventListener('click', () => this.openExportModal());
+        
+        // Upload
+        document.getElementById('uploadBtn').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+        
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            this.handleFiles(e.target.files);
+        });
+        
+        // Playback controls
+        document.getElementById('playBtn').addEventListener('click', () => this.togglePlay());
+        document.getElementById('stopBtn').addEventListener('click', () => this.stop());
+        document.getElementById('volumeSlider').addEventListener('input', (e) => {
+            this.setVolume(e.target.value / 100);
+        });
+        
+        // Timeline controls
+        document.getElementById('zoomInBtn').addEventListener('click', () => this.zoomTimeline(1.5));
+        document.getElementById('zoomOutBtn').addEventListener('click', () => this.zoomTimeline(0.67));
+        document.getElementById('fitBtn').addEventListener('click', () => this.fitTimeline());
+        
+        // Panel collapse
+        document.getElementById('collapseLeft').addEventListener('click', () => {
+            document.querySelector('.left-panel').classList.toggle('collapsed');
+        });
+        
+        document.getElementById('collapseRight').addEventListener('click', () => {
+            document.querySelector('.right-panel').classList.toggle('collapsed');
+        });
+        
+        // Export modal
+        document.getElementById('closeExportModal').addEventListener('click', () => {
+            document.getElementById('exportModal').classList.remove('active');
+        });
+        
+        document.getElementById('cancelExportBtn').addEventListener('click', () => {
+            document.getElementById('exportModal').classList.remove('active');
+        });
+        
+        document.getElementById('startExportBtn').addEventListener('click', () => {
+            this.exportVideo();
+        });
+        
+        // Filter sliders
+        const filterSliders = document.querySelectorAll('.filter-slider');
+        filterSliders.forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const valueDisplay = e.target.parentElement.querySelector('.value');
+                if (valueDisplay) {
+                    valueDisplay.textContent = e.target.value;
+                }
+                this.applyFilter(slider.id, e.target.value);
+            });
+        });
+        
+        // Effect tabs
+        document.querySelectorAll('.effect-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabName = tab.dataset.effectTab;
+                this.switchEffectTab(tabName);
+            });
+        });
+        
+        // Transitions
+        document.querySelectorAll('[data-transition]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const transition = btn.dataset.transition;
+                this.applyTransition(transition);
+            });
+        });
+        
+        // Animations
+        document.querySelectorAll('[data-animation]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const animation = btn.dataset.animation;
+                this.applyAnimation(animation);
+            });
+        });
+        
+        // Text presets
+        document.querySelectorAll('.text-preset-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const style = btn.dataset.style;
+                this.addTextClip(style);
+            });
+        });
+        
+        // Stock search
+        let searchTimeout;
+        document.getElementById('stockSearch').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                this.searchStockImages(e.target.value);
+            }, 500);
+        });
+        
+        // Timeline ruler click
+        document.getElementById('timelineRuler').addEventListener('click', (e) => {
+            this.seekTo(e);
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    this.togglePlay();
+                    break;
+                case 'Delete':
+                    e.preventDefault();
+                    this.deleteClip();
+                    break;
+                case 'z':
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        this.undo();
+                    }
+                    break;
+                case 'y':
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        this.redo();
+                    }
+                    break;
             }
         });
     }
-
-    // Actualizar fecha de inicio si existe
-    if (data.fechaInicio) {
-        projectData.fechaInicio = data.fechaInicio;
-    }
-
-    updateProgress();
-}
-
-// Función para compartir en redes
-function compartirRedes() {
-    const nombre = document.getElementById('nombre').value || 'alguien especial';
-    const mensaje = `¡${nombre} está creando su película de vida en CineVida! 🎬✨ Una herramienta increíble para visualizar y planificar el futuro.`;
-
-    if (navigator.share) {
-        navigator.share({
-            title: 'Mi Película de Vida - CineVida',
-            text: mensaje,
-            url: window.location.href
-        }).catch(err => console.log('Error al compartir:', err));
-    } else {
-        // Fallback: copiar al portapapeles
-        navigator.clipboard.writeText(mensaje + '\n\n' + window.location.href)
-            .then(() => {
-                mostrarToast('success', '📱 Enlace copiado al portapapeles. ¡Pégalo donde quieras compartirlo!');
-            })
-            .catch(err => {
-                alert('📱 ' + mensaje + '\n\n¡Copia este mensaje y compártelo con tus amigos!');
+    
+    setupDragAndDrop() {
+        const uploadArea = document.getElementById('uploadArea');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
             });
+        });
+        
+        uploadArea.addEventListener('dragenter', () => {
+            uploadArea.classList.add('drag-over');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            uploadArea.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            this.handleFiles(files);
+        });
+        
+        // Hacer upload area clickeable - SOLUCIÓN AL BUG: prevenir múltiples clics
+        let uploadClickInProgress = false;
+        uploadArea.addEventListener('click', () => {
+            if (!uploadClickInProgress) {
+                uploadClickInProgress = true;
+                document.getElementById('fileInput').click();
+                
+                // Resetear después de un tiempo
+                setTimeout(() => {
+                    uploadClickInProgress = false;
+                }, 1000);
+            }
+        });
+        
+        // Setup timeline drop zones
+        this.setupTimelineDrop();
     }
-}
-
-// Función de celebración
-function celebrar() {
-    for (let i = 0; i < 20; i++) {
-        setTimeout(() => {
-            const emoji = document.createElement('div');
-            emoji.className = 'floating-emoji';
-            emoji.textContent = ['🎉', '🎊', '✨', '🌟', '💫', '🎯', '🏆'][Math.floor(Math.random() * 7)];
-            emoji.style.left = Math.random() * window.innerWidth + 'px';
-            emoji.style.top = Math.random() * window.innerHeight + 'px';
-            document.body.appendChild(emoji);
-
-            setTimeout(() => emoji.remove(), 5000);
-        }, i * 100);
+    
+    setupTabs() {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(tabName + 'Tab').classList.add('active');
+                
+                // Si es la pestaña de audio, cargar música
+                if (tabName === 'audio') {
+                    this.loadDefaultMusic();
+                }
+            });
+        });
     }
-}
-
-// Cambiar frase motivacional
-function cambiarFraseMotivacional() {
-    const quote = document.getElementById('quote');
-    quote.textContent = frases[Math.floor(Math.random() * frases.length)];
-}
-
-// Actualizar reproductor de música
-function actualizarReproductorMusica(genero) {
-    const musicPlayer = document.getElementById('musicPlayer');
-
-    if (genero && musicOptions[genero]) {
-        const musica = musicOptions[genero];
-        let musicHTML = `
-            <div class="music-player">
-                <div class="music-info">
-                    <img src="${musica.thumbnail}" alt="${musica.name}" class="music-thumbnail">
-                    <div>
-                        <h6 class="mb-0">${musica.name}</h6>
-                        <small class="text-muted">Reproduciendo desde YouTube</small>
-                    </div>
-                </div>
-                <div class="ratio ratio-16x9">
-                    <iframe src="${musica.url}?autoplay=1&modestbranding=1&rel=0" 
-                             frameborder="0" 
-                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                             allowfullscreen>
-                    </iframe>
-                </div>
+    
+    async handleFiles(files) {
+        if (!files || files.length === 0) return;
+        
+        console.log(`📁 Procesando ${files.length} archivos...`);
+        
+        // SOLUCIÓN AL BUG: Usar Set para evitar duplicados
+        const uniqueFiles = Array.from(new Set(Array.from(files)));
+        
+        for (const file of uniqueFiles) {
+            if (file.type.startsWith('image/')) {
+                await this.addImageFile(file);
+            } else if (file.type.startsWith('video/')) {
+                await this.addVideoFile(file);
+            } else {
+                this.showToast('error', `Formato no soportado: ${file.name}`);
+            }
+        }
+    }
+    
+    async addImageFile(file) {
+        // SOLUCIÓN AL BUG: Verificar si el archivo ya existe en la biblioteca
+        const existingFile = this.mediaLibrary.find(media => 
+            media.name === file.name && media.type === 'image'
+        );
+        
+        if (existingFile) {
+            console.log('🔄 Imagen ya existe en la biblioteca:', file.name);
+            this.showToast('info', `"${file.name}" ya está en la biblioteca`);
+            return;
+        }
+        
+        try {
+            const url = await this.readFileAsDataURL(file);
+            const img = await this.loadImage(url);
+            
+            const media = {
+                id: this.generateId(),
+                type: 'image',
+                name: file.name,
+                url: url,
+                width: img.width,
+                height: img.height
+            };
+            
+            this.mediaLibrary.push(media);
+            this.loadedImages.set(media.id, img);
+            this.renderMediaGrid();
+            this.showToast('success', `${file.name} agregado`);
+        } catch (error) {
+            console.error('Error al cargar imagen:', error);
+            this.showToast('error', 'Error al cargar la imagen');
+        }
+    }
+    
+    async addVideoFile(file) {
+        // SOLUCIÓN AL BUG: Verificar si el archivo ya existe en la biblioteca
+        const existingFile = this.mediaLibrary.find(media => 
+            media.name === file.name && media.type === 'video'
+        );
+        
+        if (existingFile) {
+            console.log('🔄 Video ya existe en la biblioteca:', file.name);
+            this.showToast('info', `"${file.name}" ya está en la biblioteca`);
+            return;
+        }
+        
+        try {
+            const url = await this.readFileAsDataURL(file);
+            
+            const media = {
+                id: this.generateId(),
+                type: 'video',
+                name: file.name,
+                url: url
+            };
+            
+            this.mediaLibrary.push(media);
+            this.renderMediaGrid();
+            this.showToast('success', `${file.name} agregado`);
+        } catch (error) {
+            console.error('Error al cargar video:', error);
+            this.showToast('error', 'Error al cargar el video');
+        }
+    }
+    
+    readFileAsDataURL(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    loadImage(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = url;
+        });
+    }
+    
+    renderMediaGrid() {
+        const grid = document.getElementById('mediaGrid');
+        grid.innerHTML = '';
+        
+        this.mediaLibrary.forEach(media => {
+            const item = document.createElement('div');
+            item.className = 'media-item';
+            item.draggable = true;
+            item.dataset.mediaId = media.id;
+            
+            if (media.type === 'image') {
+                const img = document.createElement('img');
+                img.src = media.url;
+                img.alt = media.name;
+                item.appendChild(img);
+            } else if (media.type === 'video') {
+                const video = document.createElement('video');
+                video.src = media.url;
+                video.muted = true;
+                item.appendChild(video);
+            }
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deleteMedia(media.id);
+            });
+            item.appendChild(deleteBtn);
+            
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('mediaId', media.id);
+                item.classList.add('dragging');
+            });
+            
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+            });
+            
+            grid.appendChild(item);
+        });
+    }
+    
+    async loadStockImages() {
+        const PEXELS_API_KEY = 'MZSwIgZdfwVtcJezqtr2ymGUpe7qRg0ksa5GdB0t6VIl5NxiB9qD4C9m';
+        const query = 'nature landscape motivation';
+        
+        try {
+            const response = await fetch(`https://api.pexels.com/v1/search?query=${query}&per_page=15`, {
+                headers: {
+                    'Authorization': PEXELS_API_KEY
+                }
+            });
+            
+            if (!response.ok) throw new Error('Error al cargar imágenes');
+            
+            const data = await response.json();
+            const images = data.photos.map(photo => ({
+                url: photo.src.medium,
+                name: photo.alt || 'Imagen de stock',
+                photographer: photo.photographer
+            }));
+            
+            this.renderStockGrid(images);
+        } catch (error) {
+            console.error('Error al cargar imágenes de Pexels:', error);
+            // Imágenes de respaldo de Unsplash
+            const fallbackImages = [
+                { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400', name: 'Montaña' },
+                { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400', name: 'Aurora' },
+                { url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400', name: 'Pico' },
+                { url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400', name: 'Naturaleza' },
+                { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400', name: 'Bosque' },
+                { url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400', name: 'Niebla' },
+                { url: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400', name: 'Lago' },
+                { url: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400', name: 'Atardecer' }
+            ];
+            this.renderStockGrid(fallbackImages);
+        }
+    }
+    
+    renderStockGrid(images) {
+        const grid = document.getElementById('stockGrid');
+        grid.innerHTML = '';
+        
+        images.forEach((img) => {
+            const item = document.createElement('div');
+            item.className = 'stock-item';
+            item.draggable = true;
+            item.innerHTML = `<img src="${img.url}" alt="${img.name}">`;
+            
+            item.addEventListener('dragstart', async (e) => {
+                // SOLUCIÓN AL BUG: Verificar si la imagen ya existe antes de agregar
+                const existingImage = this.mediaLibrary.find(media => 
+                    media.url === img.url && media.type === 'image'
+                );
+                
+                if (existingImage) {
+                    e.dataTransfer.setData('mediaId', existingImage.id);
+                    return;
+                }
+                
+                const media = {
+                    id: this.generateId(),
+                    type: 'image',
+                    name: img.name,
+                    url: img.url
+                };
+                
+                try {
+                    const loadedImg = await this.loadImage(img.url);
+                    media.width = loadedImg.width;
+                    media.height = loadedImg.height;
+                    this.loadedImages.set(media.id, loadedImg);
+                } catch (error) {
+                    console.error('Error al precargar imagen:', error);
+                }
+                
+                this.mediaLibrary.push(media);
+                e.dataTransfer.setData('mediaId', media.id);
+            });
+            
+            item.addEventListener('dblclick', async () => {
+                // SOLUCIÓN AL BUG: Verificar si la imagen ya existe antes de agregar
+                const existingImage = this.mediaLibrary.find(media => 
+                    media.url === img.url && media.type === 'image'
+                );
+                
+                if (existingImage) {
+                    this.showToast('info', `"${img.name}" ya está en la biblioteca`);
+                    return;
+                }
+                
+                const media = {
+                    id: this.generateId(),
+                    type: 'image',
+                    name: img.name,
+                    url: img.url
+                };
+                
+                try {
+                    const loadedImg = await this.loadImage(img.url);
+                    media.width = loadedImg.width;
+                    media.height = loadedImg.height;
+                    this.loadedImages.set(media.id, loadedImg);
+                    this.mediaLibrary.push(media);
+                    this.renderMediaGrid();
+                    this.showToast('success', `${img.name} agregado a biblioteca`);
+                } catch (error) {
+                    this.showToast('error', 'Error al agregar imagen');
+                }
+            });
+            
+            grid.appendChild(item);
+        });
+    }
+    
+    async searchStockImages(query) {
+        if (!query.trim()) {
+            this.loadStockImages();
+            return;
+        }
+        
+        const PEXELS_API_KEY = 'MZSwIgZdfwVtcJezqtr2ymGUpe7qRg0ksa5GdB0t6VIl5NxiB9qD4C9m';
+        
+        try {
+            const response = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=15`, {
+                headers: {
+                    'Authorization': PEXELS_API_KEY
+                }
+            });
+            
+            if (!response.ok) throw new Error('Error en búsqueda');
+            
+            const data = await response.json();
+            const images = data.photos.map(photo => ({
+                url: photo.src.medium,
+                name: photo.alt || query,
+                photographer: photo.photographer
+            }));
+            
+            this.renderStockGrid(images);
+            this.showToast('success', `${images.length} imágenes encontradas`);
+        } catch (error) {
+            console.error('Error en búsqueda:', error);
+            this.showToast('error', 'Error al buscar imágenes');
+        }
+    }
+    
+    async loadDefaultMusic() {
+        const audioList = document.getElementById('audioList');
+        
+        // Limpiar lista existente
+        audioList.innerHTML = '';
+        
+        // Agregar buscador de música
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'search-box';
+        searchContainer.style.marginBottom = '15px';
+        searchContainer.innerHTML = `
+            <i class="fas fa-search"></i>
+            <input type="text" id="musicSearch" placeholder="Buscar música...">
+            <div class="audio-notice">
+                <i class="fas fa-info-circle"></i> Haz clic en cualquier parte de la página para activar el audio
             </div>
         `;
-        musicPlayer.innerHTML = musicHTML;
-    } else {
-        musicPlayer.innerHTML = '';
+        audioList.appendChild(searchContainer);
+        
+        // Event listener para el buscador de música
+        let musicSearchTimeout;
+        document.getElementById('musicSearch').addEventListener('input', (e) => {
+            clearTimeout(musicSearchTimeout);
+            musicSearchTimeout = setTimeout(() => {
+                this.searchMusic(e.target.value);
+            }, 500);
+        });
+        
+        // SIN CANCIONES PREDETERMINADAS - Solo el buscador
+        this.renderMusicList([]);
     }
-}
-
-// Crear partículas de fondo
-function crearParticula() {
-    const particula = document.createElement('div');
-    particula.style.position = 'fixed';
-    particula.style.width = '4px';
-    particula.style.height = '4px';
-    particula.style.background = 'rgba(255, 255, 255, 0.8)';
-    particula.style.borderRadius = '50%';
-    particula.style.pointerEvents = 'none';
-    particula.style.left = Math.random() * window.innerWidth + 'px';
-    particula.style.top = window.innerHeight + 'px';
-    particula.style.zIndex = '1';
-
-    document.body.appendChild(particula);
-
-    let velocidad = 1 + Math.random() * 3;
-    let posY = window.innerHeight;
-
-    const animarParticula = setInterval(() => {
-        posY -= velocidad;
-        particula.style.top = posY + 'px';
-        particula.style.opacity = posY / window.innerHeight;
-
-        if (posY < -10) {
-            clearInterval(animarParticula);
-            particula.remove();
+    
+    async searchMusic(query) {
+        if (!query.trim()) {
+            this.loadDefaultMusic();
+            return;
         }
-    }, 20);
-}
-
-// Verificar logro
-function verificarLogro(tipo) {
-    if (!logros[tipo]) {
-        logros[tipo] = true;
-        mostrarLogro(tipo);
-    }
-}
-
-// Mostrar logro
-function mostrarLogro(tipo) {
-    const mensajes = {
-        primeraMeta: '🏆 ¡Primera Meta Establecida!',
-        cincoEtapas: '⭐ ¡5 Etapas Creadas!',
-        peliculaCreada: '🎬 ¡Película Creada!',
-        proyectoGuardado: '💾 ¡Proyecto Guardado!'
-    };
-
-    if (mensajes[tipo]) {
-        mostrarToast('info', mensajes[tipo]);
-    }
-}
-
-// Mostrar toast de Bootstrap
-function mostrarToast(tipo, mensaje) {
-    // Crear elemento toast
-    const toastContainer = document.createElement('div');
-    toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-
-    const toastEl = document.createElement('div');
-    toastEl.className = `toast align-items-center text-bg-${tipo} border-0`;
-    toastEl.setAttribute('role', 'alert');
-    toastEl.setAttribute('aria-live', 'assertive');
-    toastEl.setAttribute('aria-atomic', 'true');
-
-    toastEl.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">
-                ${mensaje}
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-    `;
-
-    toastContainer.appendChild(toastEl);
-    document.body.appendChild(toastContainer);
-
-    // Inicializar y mostrar toast
-    const toast = new bootstrap.Toast(toastEl);
-    toast.show();
-
-    // Eliminar toast después de que se oculte
-    toastEl.addEventListener('hidden.bs.toast', function() {
-        toastContainer.remove();
-    });
-}
-
-// Modo oscuro
-function toggleDarkMode() {
-    const body = document.body;
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const icon = darkModeToggle.querySelector('i');
-
-    if (body.classList.contains('dark-mode')) {
-        body.classList.remove('dark-mode');
-        icon.classList.remove('bi-sun');
-        icon.classList.add('bi-moon');
-        darkModeToggle.style.background = 'rgba(255, 255, 255, 0.2)';
-        darkModeToggle.style.borderColor = 'white';
-    } else {
-        body.classList.add('dark-mode');
-        icon.classList.remove('bi-moon');
-        icon.classList.add('bi-sun');
-        darkModeToggle.style.background = 'rgba(0, 0, 0, 0.2)';
-        darkModeToggle.style.borderColor = '#e9ecef';
-    }
-}
-
-// Autoguardado
-function autoguardar() {
-    const nombre = document.getElementById('nombre').value;
-    if (nombre && etapas.length > 0) {
-        projectData.nombre = nombre;
-        projectData.etapas = etapas;
-        localStorage.setItem('cineVidaAutoguardado', JSON.stringify(projectData));
-    }
-}
-
-// Cargar autoguardado al iniciar
-function cargarAutoguardado() {
-    const autoguardado = localStorage.getItem('cineVidaAutoguardado');
-    if (autoguardado) {
+        
         try {
-            const data = JSON.parse(autoguardado);
-            if (confirm('¿Deseas recuperar tu último proyecto autoguardado?')) {
-                cargarDatosProyecto(data);
+            // Primero intentar con música local/búsqueda alternativa
+            const localResults = this.getLocalMusicResults(query);
+            if (localResults.length > 0) {
+                this.renderMusicList(localResults);
+                this.showToast('success', `${localResults.length} canciones encontradas`);
+                return;
+            }
+            
+            // Fallback a Deezer si no hay resultados locales
+            const response = await fetch(`https://corsproxy.io/?url=https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=8`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                const tracks = data.data.map(track => ({
+                    title: track.title,
+                    artist: track.artist.name,
+                    preview: track.preview,
+                    duration: track.duration,
+                    cover: track.album.cover_small,
+                    reliable: false
+                }));
+                
+                this.renderMusicList(tracks);
+                this.showToast('success', `${tracks.length} canciones encontradas`);
+            } else {
+                throw new Error('Error en búsqueda de música');
             }
         } catch (error) {
-            console.error('Error al cargar autoguardado:', error);
+            console.error('Error al buscar música:', error);
+            this.showToast('info', 'No se encontraron resultados. Intenta con otros términos.');
+            this.renderMusicList([]);
         }
+    }
+    
+    getLocalMusicResults(query) {
+        // SIN CANCIONES PREDETERMINADAS - Retornar array vacío
+        return [];
+    }
+    
+    renderMusicList(tracks) {
+        const audioList = document.getElementById('audioList');
+        
+        // Mantener el buscador y limpiar solo la lista de canciones
+        const searchContainer = audioList.querySelector('.search-box');
+        audioList.innerHTML = '';
+        if (searchContainer) {
+            audioList.appendChild(searchContainer);
+        }
+        
+        if (tracks.length === 0) {
+            const noResults = document.createElement('div');
+            noResults.className = 'no-results';
+            noResults.innerHTML = `
+                <i class="fas fa-music"></i>
+                <p>No se encontraron canciones</p>
+                <p class="search-tips">Usa el buscador para encontrar música</p>
+            `;
+            audioList.appendChild(noResults);
+            return;
+        }
+        
+        tracks.forEach(track => {
+            const audioItem = document.createElement('div');
+            audioItem.className = 'audio-item';
+            if (track.reliable) {
+                audioItem.classList.add('reliable');
+            }
+            
+            audioItem.innerHTML = `
+                <i class="fas fa-music"></i>
+                <div class="track-info">
+                    <div class="track-title">${track.title}</div>
+                    <div class="track-artist">${track.artist}</div>
+                    ${track.reliable ? '<div class="reliable-badge"><i class="fas fa-check"></i> Confiable</div>' : ''}
+                </div>
+                <button class="play-preview"><i class="fas fa-play"></i></button>
+            `;
+            
+            const playBtn = audioItem.querySelector('.play-preview');
+            playBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                console.log('🎵 Click en preview de:', track.title);
+                await this.playAudioPreview(track.preview, audioItem);
+            });
+            
+            audioItem.addEventListener('click', () => {
+                this.addAudioToTimeline(track);
+            });
+            
+            audioList.appendChild(audioItem);
+        });
+    }
+    
+    async playAudioPreview(url, element) {
+        return await this.audioManager.playAudio(url, element);
+    }
+    
+    addAudioToTimeline(track) {
+        const clip = {
+            id: this.generateId(),
+            type: 'audio',
+            track: 'audioTrack',
+            startTime: this.timeline.currentTime,
+            duration: 30,
+            name: track.title,
+            url: track.preview,
+            artist: track.artist,
+            effects: {},
+            reliable: track.reliable || false
+        };
+        
+        this.saveState();
+        this.timeline.clips.push(clip);
+        this.renderTimeline();
+        this.showToast('success', `"${track.title}" agregado a timeline`);
+        
+        // Reproducir automáticamente al agregar a timeline
+        if (this.audioManager.userInteracted) {
+            setTimeout(() => {
+                this.audioManager.playAudio(track.preview, null);
+            }, 100);
+        }
+    }
+    
+    setupTimelineDrop() {
+        const tracks = {
+            'videoTrack': ['image', 'video'],
+            'imagesTrack': ['image'],
+            'textTrack': ['text'],
+            'audioTrack': ['audio']
+        };
+        
+        Object.keys(tracks).forEach(trackId => {
+            const track = document.getElementById(trackId);
+            
+            ['dragover', 'drop'].forEach(eventName => {
+                track.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                });
+            });
+            
+            track.addEventListener('dragover', (e) => {
+                track.style.background = 'rgba(59, 130, 246, 0.1)';
+            });
+            
+            track.addEventListener('dragleave', (e) => {
+                track.style.background = '';
+            });
+            
+            track.addEventListener('drop', (e) => {
+                track.style.background = '';
+                const mediaId = e.dataTransfer.getData('mediaId');
+                if (mediaId) {
+                    const media = this.mediaLibrary.find(m => m.id === mediaId);
+                    if (media) {
+                        const rect = track.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const pixelsPerSecond = 100 * this.timeline.zoom;
+                        const time = Math.max(0, (x / pixelsPerSecond));
+                        
+                        this.addClipToTimeline(media, trackId, time);
+                    }
+                }
+            });
+        });
+    }
+    
+    addClipToTimeline(media, trackId, startTime) {
+        const clip = {
+            id: this.generateId(),
+            mediaId: media.id,
+            type: media.type,
+            track: trackId,
+            startTime: Math.max(0, startTime),
+            duration: media.type === 'image' ? 5 : 10,
+            name: media.name,
+            url: media.url,
+            effects: {
+                brightness: 0,
+                contrast: 0,
+                saturation: 0,
+                blur: 0
+            },
+            transition: null,
+            animation: null
+        };
+        
+        this.saveState();
+        this.timeline.clips.push(clip);
+        
+        // Actualizar duración de la timeline si es necesario
+        const clipEndTime = clip.startTime + clip.duration;
+        if (clipEndTime > this.timeline.duration) {
+            this.timeline.duration = Math.ceil(clipEndTime / 10) * 10;
+        }
+        
+        this.renderTimeline();
+        this.hidePreviewOverlay();
+        this.renderPreview();
+        this.showToast('success', `"${media.name}" agregado a timeline`);
+    }
+    
+    renderTimeline() {
+        const tracks = {
+            videoTrack: [],
+            imagesTrack: [],
+            textTrack: [],
+            audioTrack: []
+        };
+        
+        this.timeline.clips.forEach(clip => {
+            tracks[clip.track].push(clip);
+        });
+        
+        Object.keys(tracks).forEach(trackId => {
+            const trackElement = document.getElementById(trackId);
+            trackElement.innerHTML = '';
+            
+            tracks[trackId].forEach(clip => {
+                const clipElement = this.createClipElement(clip);
+                trackElement.appendChild(clipElement);
+            });
+        });
+        
+        this.updateTimeDisplay();
+        this.setupTimelineDrop();
+    }
+    
+    createClipElement(clip) {
+        const element = document.createElement('div');
+        element.className = 'timeline-clip';
+        element.dataset.clipId = clip.id;
+        
+        const pixelsPerSecond = 100 * this.timeline.zoom;
+        element.style.left = (clip.startTime * pixelsPerSecond) + 'px';
+        element.style.width = (clip.duration * pixelsPerSecond) + 'px';
+        
+        if (this.selectedClip && this.selectedClip.id === clip.id) {
+            element.classList.add('selected');
+        }
+        
+        let thumbnailHTML = '';
+        if (clip.type === 'image' && clip.url) {
+            thumbnailHTML = `<img src="${clip.url}" class="clip-thumbnail" alt="${clip.name}">`;
+        } else if (clip.type === 'text') {
+            thumbnailHTML = '<i class="fas fa-font" style="font-size: 24px; margin-right: 8px;"></i>';
+        } else if (clip.type === 'audio') {
+            thumbnailHTML = '<i class="fas fa-music" style="font-size: 24px; margin-right: 8px;"></i>';
+        }
+        
+        element.innerHTML = `
+            ${thumbnailHTML}
+            <div class="clip-info">
+                <div class="clip-name">${clip.text || clip.name}</div>
+                <div class="clip-duration">${clip.duration.toFixed(1)}s</div>
+            </div>
+            <div class="resize-handle left"></div>
+            <div class="resize-handle right"></div>
+        `;
+        
+        element.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('resize-handle')) {
+                this.selectClip(clip);
+            }
+        });
+        
+        this.makeClipDraggable(element, clip);
+        this.makeClipResizable(element, clip);
+        
+        return element;
+    }
+    
+    makeClipDraggable(element, clip) {
+        let isDragging = false;
+        let startX = 0;
+        let startTime = 0;
+        
+        element.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('resize-handle')) return;
+            
+            isDragging = true;
+            startX = e.clientX;
+            startTime = clip.startTime;
+            element.classList.add('dragging');
+            
+            const onMouseMove = (e) => {
+                if (!isDragging) return;
+                
+                const deltaX = e.clientX - startX;
+                const pixelsPerSecond = 100 * this.timeline.zoom;
+                const deltaTime = deltaX / pixelsPerSecond;
+                
+                clip.startTime = Math.max(0, startTime + deltaTime);
+                element.style.left = (clip.startTime * pixelsPerSecond) + 'px';
+            };
+            
+            const onMouseUp = () => {
+                if (isDragging) {
+                    isDragging = false;
+                    element.classList.remove('dragging');
+                    this.saveState();
+                    this.renderPreview();
+                }
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+    }
+    
+    makeClipResizable(element, clip) {
+        const leftHandle = element.querySelector('.resize-handle.left');
+        const rightHandle = element.querySelector('.resize-handle.right');
+        
+        const handleResize = (handle, isLeft) => {
+            let isResizing = false;
+            let startX = 0;
+            let startTime = 0;
+            let startDuration = 0;
+            
+            handle.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                isResizing = true;
+                startX = e.clientX;
+                startTime = clip.startTime;
+                startDuration = clip.duration;
+                
+                const onMouseMove = (e) => {
+                    if (!isResizing) return;
+                    
+                    const deltaX = e.clientX - startX;
+                    const pixelsPerSecond = 100 * this.timeline.zoom;
+                    const deltaTime = deltaX / pixelsPerSecond;
+                    
+                    if (isLeft) {
+                        const newStartTime = Math.max(0, startTime + deltaTime);
+                        const newDuration = startDuration - (newStartTime - startTime);
+                        
+                        if (newDuration > 0.5) {
+                            clip.startTime = newStartTime;
+                            clip.duration = newDuration;
+                        }
+                    } else {
+                        const newDuration = Math.max(0.5, startDuration + deltaTime);
+                        clip.duration = newDuration;
+                    }
+                    
+                    element.style.left = (clip.startTime * pixelsPerSecond) + 'px';
+                    element.style.width = (clip.duration * pixelsPerSecond) + 'px';
+                    
+                    const durationDisplay = element.querySelector('.clip-duration');
+                    if (durationDisplay) {
+                        durationDisplay.textContent = clip.duration.toFixed(1) + 's';
+                    }
+                };
+                
+                const onMouseUp = () => {
+                    if (isResizing) {
+                        isResizing = false;
+                        this.saveState();
+                        this.updatePropertiesPanel();
+                        this.renderPreview();
+                    }
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                };
+                
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        };
+        
+        handleResize(leftHandle, true);
+        handleResize(rightHandle, false);
+    }
+    
+    selectClip(clip) {
+        this.selectedClip = clip;
+        this.renderTimeline();
+        this.updatePropertiesPanel();
+    }
+    
+    updatePropertiesPanel() {
+        const content = document.getElementById('propertiesContent');
+        
+        if (!this.selectedClip) {
+            content.innerHTML = `
+                <div class="no-selection">
+                    <i class="fas fa-hand-pointer"></i>
+                    <p>Selecciona un elemento para editar sus propiedades</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const clip = this.selectedClip;
+        
+        let specificProperties = '';
+        
+        if (clip.type === 'text') {
+            specificProperties = `
+                <div class="property-group">
+                    <h4><i class="fas fa-font"></i> Texto</h4>
+                    <div class="property-item">
+                        <label>Contenido</label>
+                        <input type="text" value="${clip.text || ''}" id="clipText">
+                    </div>
+                    <div class="property-item">
+                        <label>Tamaño de fuente</label>
+                        <input type="number" value="${clip.fontSize || 48}" min="12" max="200" id="fontSize">
+                    </div>
+                    <div class="property-item">
+                        <label>Color</label>
+                        <input type="color" value="${clip.color || '#ffffff'}" id="textColor">
+                    </div>
+                    <div class="property-item">
+                        <label>Fuente</label>
+                        <select id="fontFamily">
+                            <option value="Inter" ${clip.fontFamily === 'Inter' ? 'selected' : ''}>Inter</option>
+                            <option value="Arial" ${clip.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
+                            <option value="Georgia" ${clip.fontFamily === 'Georgia' ? 'selected' : ''}>Georgia</option>
+                            <option value="Impact" ${clip.fontFamily === 'Impact' ? 'selected' : ''}>Impact</option>
+                        </select>
+                    </div>
+                    <div class="property-item">
+                        <label>Posición Y (%)</label>
+                        <input type="range" value="${clip.positionY || 50}" min="0" max="100" id="positionY">
+                        <span id="positionYValue">${clip.positionY || 50}%</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        content.innerHTML = `
+            <div class="property-group">
+                <h4><i class="fas fa-info-circle"></i> Información</h4>
+                <div class="property-item">
+                    <label>Nombre</label>
+                    <input type="text" value="${clip.name}" id="clipName">
+                </div>
+                <div class="property-item">
+                    <label>Inicio (s)</label>
+                    <input type="number" value="${clip.startTime.toFixed(2)}" step="0.1" id="clipStart">
+                </div>
+                <div class="property-item">
+                    <label>Duración (s)</label>
+                    <input type="number" value="${clip.duration.toFixed(2)}" step="0.1" min="0.1" id="clipDuration">
+                </div>
+            </div>
+            ${specificProperties}
+        `;
+        
+        // Event listeners
+        const handlers = {
+            'clipName': (e) => { clip.name = e.target.value; this.renderTimeline(); },
+            'clipStart': (e) => { clip.startTime = parseFloat(e.target.value) || 0; this.renderTimeline(); },
+            'clipDuration': (e) => { clip.duration = Math.max(0.1, parseFloat(e.target.value) || 1); this.renderTimeline(); },
+            'clipText': (e) => { clip.text = e.target.value; this.renderPreview(); },
+            'fontSize': (e) => { clip.fontSize = parseInt(e.target.value) || 48; this.renderPreview(); },
+            'textColor': (e) => { clip.color = e.target.value; this.renderPreview(); },
+            'fontFamily': (e) => { clip.fontFamily = e.target.value; this.renderPreview(); },
+            'positionY': (e) => { 
+                clip.positionY = parseInt(e.target.value);
+                const valueDisplay = document.getElementById('positionYValue');
+                if (valueDisplay) valueDisplay.textContent = clip.positionY + '%';
+                this.renderPreview();
+            }
+        };
+        
+        Object.keys(handlers).forEach(id => {
+            const element = content.querySelector('#' + id);
+            if (element) {
+                element.addEventListener('input', handlers[id]);
+            }
+        });
+    }
+    
+    addTextClip(style) {
+        const styles = {
+            title: { text: 'Título Principal', fontSize: 72, color: '#ffffff', positionY: 30 },
+            subtitle: { text: 'Subtítulo', fontSize: 48, color: '#ffffff', positionY: 50 },
+            caption: { text: 'Pie de foto', fontSize: 32, color: '#ffffff', positionY: 80 },
+            quote: { text: '"Cita inspiradora"', fontSize: 56, color: '#ffd700', positionY: 50 }
+        };
+        
+        const styleData = styles[style];
+        
+        const clip = {
+            id: this.generateId(),
+            type: 'text',
+            track: 'textTrack',
+            startTime: this.timeline.currentTime,
+            duration: 5,
+            name: styleData.text,
+            text: styleData.text,
+            fontSize: styleData.fontSize,
+            color: styleData.color,
+            fontFamily: 'Inter',
+            positionY: styleData.positionY,
+            effects: {
+                brightness: 0,
+                contrast: 0,
+                saturation: 0,
+                blur: 0
+            }
+        };
+        
+        this.saveState();
+        this.timeline.clips.push(clip);
+        this.renderTimeline();
+        this.selectClip(clip);
+        this.hidePreviewOverlay();
+        this.renderPreview();
+        this.showToast('success', 'Texto agregado');
+    }
+    
+    togglePlay() {
+        if (this.timeline.playing) {
+            this.pause();
+        } else {
+            this.play();
+        }
+    }
+    
+    play() {
+        this.timeline.playing = true;
+        const playBtn = document.getElementById('playBtn');
+        playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        
+        const startTime = performance.now();
+        const initialTime = this.timeline.currentTime;
+        
+        const animate = (currentTime) => {
+            if (!this.timeline.playing) return;
+            
+            const elapsed = (currentTime - startTime) / 1000;
+            this.timeline.currentTime = initialTime + elapsed;
+            
+            // Reproducir audio de la timeline durante la edición
+            this.timeline.clips.forEach(clip => {
+                if (clip.type === 'audio') {
+                    this.audioManager.playTimelineAudio(clip, this.timeline.currentTime);
+                }
+            });
+            
+            if (this.timeline.currentTime >= this.timeline.duration) {
+                this.timeline.currentTime = 0;
+                this.pause();
+                return;
+            }
+            
+            this.updateTimeDisplay();
+            this.updatePlayhead();
+            this.renderPreview();
+            
+            this.animationFrame = requestAnimationFrame(animate);
+        };
+        
+        this.animationFrame = requestAnimationFrame(animate);
+    }
+    
+    pause() {
+        this.timeline.playing = false;
+        const playBtn = document.getElementById('playBtn');
+        playBtn.innerHTML = '<i class="fas fa-play"></i>';
+        
+        // Pausar todo el audio al pausar la timeline
+        this.audioManager.pauseAudio();
+        
+        if (this.animationFrame) {
+            cancelAnimationFrame(this.animationFrame);
+            this.animationFrame = null;
+        }
+    }
+    
+    stop() {
+        this.pause();
+        this.timeline.currentTime = 0;
+        this.updateTimeDisplay();
+        this.updatePlayhead();
+        this.renderPreview();
+    }
+    
+    seekTo(e) {
+        const ruler = document.getElementById('timelineRuler');
+        const rect = ruler.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const percent = x / rect.width;
+        
+        this.timeline.currentTime = Math.max(0, Math.min(this.timeline.duration, percent * this.timeline.duration));
+        this.updateTimeDisplay();
+        this.updatePlayhead();
+        this.renderPreview();
+    }
+    
+    updateTimeDisplay() {
+        const currentTimeEl = document.getElementById('currentTime');
+        const totalTimeEl = document.getElementById('totalTime');
+        
+        if (currentTimeEl) currentTimeEl.textContent = this.formatTime(this.timeline.currentTime);
+        if (totalTimeEl) totalTimeEl.textContent = this.formatTime(this.timeline.duration);
+    }
+    
+    updatePlayhead() {
+        const playhead = document.getElementById('playhead');
+        const percent = (this.timeline.currentTime / this.timeline.duration) * 100;
+        if (playhead) playhead.style.left = Math.min(100, Math.max(0, percent)) + '%';
+    }
+    
+    formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    async renderPreview() {
+        const ctx = this.ctx;
+        const canvas = this.canvas;
+        
+        // Limpiar canvas
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Obtener clips visibles en el tiempo actual
+        const currentClips = this.timeline.clips.filter(clip => {
+            return this.timeline.currentTime >= clip.startTime && 
+                   this.timeline.currentTime < clip.startTime + clip.duration;
+        });
+        
+        // Ordenar por tipo de pista (imágenes/video primero, texto después)
+        const sortedClips = currentClips.sort((a, b) => {
+            const order = { 'image': 0, 'video': 1, 'text': 2 };
+            return (order[a.type] || 0) - (order[b.type] || 0);
+        });
+        
+        // Renderizar cada clip
+        for (const clip of sortedClips) {
+            if (clip.type === 'image') {
+                await this.drawImageClip(ctx, clip);
+            } else if (clip.type === 'text') {
+                this.drawTextClip(ctx, clip);
+            }
+        }
+    }
+    
+    async drawImageClip(ctx, clip) {
+        try {
+            let img = this.loadedImages.get(clip.mediaId);
+            
+            if (!img && clip.url) {
+                img = await this.loadImage(clip.url);
+                this.loadedImages.set(clip.mediaId, img);
+            }
+            
+            if (!img) return;
+            
+            const canvas = this.canvas;
+            
+            ctx.save();
+            
+            // Aplicar filtros
+            if (clip.effects) {
+                ctx.filter = this.buildFilterString(clip.effects);
+            }
+            
+            // Calcular escala para cubrir todo el canvas manteniendo aspecto
+            const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+            const x = (canvas.width - img.width * scale) / 2;
+            const y = (canvas.height - img.height * scale) / 2;
+            
+            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+            
+            ctx.restore();
+        } catch (error) {
+            console.error('Error al dibujar imagen:', error);
+        }
+    }
+    
+    drawTextClip(ctx, clip) {
+        ctx.save();
+        
+        const fontSize = clip.fontSize || 48;
+        const fontFamily = clip.fontFamily || 'Inter';
+        const color = clip.color || '#ffffff';
+        const text = clip.text || '';
+        const positionY = clip.positionY || 50;
+        
+        ctx.font = `${fontSize}px ${fontFamily}`;
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Sombra para mejor legibilidad
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        
+        const x = this.canvas.width / 2;
+        const y = (this.canvas.height * positionY) / 100;
+        
+        ctx.fillText(text, x, y);
+        
+        ctx.restore();
+    }
+    
+    buildFilterString(effects) {
+        const filters = [];
+        
+        if (effects.brightness !== 0) {
+            filters.push(`brightness(${1 + effects.brightness / 100})`);
+        }
+        if (effects.contrast !== 0) {
+            filters.push(`contrast(${1 + effects.contrast / 100})`);
+        }
+        if (effects.saturation !== 0) {
+            filters.push(`saturate(${1 + effects.saturation / 100})`);
+        }
+        if (effects.blur > 0) {
+            filters.push(`blur(${effects.blur}px)`);
+        }
+        
+        return filters.length > 0 ? filters.join(' ') : 'none';
+    }
+    
+    applyFilter(filterId, value) {
+        if (!this.selectedClip) {
+            this.showToast('error', 'Selecciona un clip primero');
+            return;
+        }
+        
+        const filterMap = {
+            'brightnessSlider': 'brightness',
+            'contrastSlider': 'contrast',
+            'saturationSlider': 'saturation',
+            'blurSlider': 'blur'
+        };
+        
+        const filterName = filterMap[filterId];
+        if (filterName && this.selectedClip.effects) {
+            this.selectedClip.effects[filterName] = parseFloat(value);
+            this.renderPreview();
+            this.saveState();
+        }
+    }
+    
+    applyTransition(transitionType) {
+        if (!this.selectedClip) {
+            this.showToast('error', 'Selecciona un clip primero');
+            return;
+        }
+        
+        this.selectedClip.transition = transitionType;
+        this.showToast('success', `Transición ${transitionType} aplicada`);
+        this.saveState();
+    }
+    
+    applyAnimation(animationType) {
+        if (!this.selectedClip) {
+            this.showToast('error', 'Selecciona un clip primero');
+            return;
+        }
+        
+        this.selectedClip.animation = animationType;
+        this.showToast('success', `Animación ${animationType} aplicada`);
+        this.saveState();
+    }
+    
+    switchEffectTab(tabName) {
+        document.querySelectorAll('.effect-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelectorAll('.effect-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        const activeTab = document.querySelector(`[data-effect-tab="${tabName}"]`);
+        const activeContent = document.getElementById(tabName + 'Content');
+        
+        if (activeTab) activeTab.classList.add('active');
+        if (activeContent) activeContent.classList.add('active');
+    }
+    
+    splitClip() {
+        if (!this.selectedClip) {
+            this.showToast('error', 'Selecciona un clip primero');
+            return;
+        }
+        
+        const clip = this.selectedClip;
+        const splitPoint = this.timeline.currentTime - clip.startTime;
+        
+        if (splitPoint <= 0 || splitPoint >= clip.duration) {
+            this.showToast('error', 'El playhead debe estar dentro del clip');
+            return;
+        }
+        
+        const newClip = JSON.parse(JSON.stringify(clip));
+        newClip.id = this.generateId();
+        newClip.startTime = clip.startTime + splitPoint;
+        newClip.duration = clip.duration - splitPoint;
+        
+        clip.duration = splitPoint;
+        
+        this.saveState();
+        this.timeline.clips.push(newClip);
+        this.renderTimeline();
+        this.showToast('success', 'Clip dividido');
+    }
+    
+    deleteClip() {
+        if (!this.selectedClip) {
+            this.showToast('error', 'Selecciona un clip primero');
+            return;
+        }
+        
+        this.saveState();
+        this.timeline.clips = this.timeline.clips.filter(c => c.id !== this.selectedClip.id);
+        this.selectedClip = null;
+        this.renderTimeline();
+        this.updatePropertiesPanel();
+        this.renderPreview();
+        this.showToast('success', 'Clip eliminado');
+    }
+    
+    deleteMedia(mediaId) {
+        this.mediaLibrary = this.mediaLibrary.filter(m => m.id !== mediaId);
+        this.loadedImages.delete(mediaId);
+        this.renderMediaGrid();
+        this.showToast('success', 'Archivo eliminado');
+    }
+    
+    zoomTimeline(factor) {
+        this.timeline.zoom *= factor;
+        this.timeline.zoom = Math.max(0.1, Math.min(5, this.timeline.zoom));
+        this.renderTimeline();
+    }
+    
+    fitTimeline() {
+        this.timeline.zoom = 1;
+        this.renderTimeline();
+    }
+    
+    saveState() {
+        const state = JSON.stringify({
+            clips: this.timeline.clips,
+            currentTime: this.timeline.currentTime
+        });
+        
+        this.history.past.push(state);
+        this.history.future = [];
+        
+        if (this.history.past.length > 50) {
+            this.history.past.shift();
+        }
+    }
+    
+    undo() {
+        if (this.history.past.length === 0) {
+            this.showToast('info', 'No hay acciones para deshacer');
+            return;
+        }
+        
+        const currentState = JSON.stringify({
+            clips: this.timeline.clips,
+            currentTime: this.timeline.currentTime
+        });
+        
+        this.history.future.push(currentState);
+        
+        const previousState = JSON.parse(this.history.past.pop());
+        this.timeline.clips = previousState.clips;
+        this.timeline.currentTime = previousState.currentTime;
+        
+        this.renderTimeline();
+        this.renderPreview();
+        this.showToast('success', 'Acción deshecha');
+    }
+    
+    redo() {
+        if (this.history.future.length === 0) {
+            this.showToast('info', 'No hay acciones para rehacer');
+            return;
+        }
+        
+        const currentState = JSON.stringify({
+            clips: this.timeline.clips,
+            currentTime: this.timeline.currentTime
+        });
+        
+        this.history.past.push(currentState);
+        
+        const nextState = JSON.parse(this.history.future.pop());
+        this.timeline.clips = nextState.clips;
+        this.timeline.currentTime = nextState.currentTime;
+        
+        this.renderTimeline();
+        this.renderPreview();
+        this.showToast('success', 'Acción rehecha');
+    }
+    
+    saveProject() {
+        const projectName = document.getElementById('projectName').value || 'Mi Proyecto';
+        
+        const projectData = {
+            name: projectName,
+            clips: this.timeline.clips,
+            mediaLibrary: this.mediaLibrary,
+            duration: this.timeline.duration,
+            resolution: this.project.resolution,
+            fps: this.project.fps
+        };
+        
+        localStorage.setItem('cinevida_project', JSON.stringify(projectData));
+        localStorage.setItem('cinevida_project_name', projectName);
+        
+        this.showToast('success', `Proyecto "${projectName}" guardado`);
+    }
+    
+    loadProject() {
+        const savedProject = localStorage.getItem('cinevida_project');
+        
+        if (!savedProject) {
+            this.showToast('error', 'No hay proyecto guardado');
+            return;
+        }
+        
+        try {
+            const projectData = JSON.parse(savedProject);
+            
+            this.timeline.clips = projectData.clips || [];
+            this.mediaLibrary = projectData.mediaLibrary || [];
+            this.timeline.duration = projectData.duration || 60;
+            
+            const projectName = localStorage.getItem('cinevida_project_name');
+            if (projectName) {
+                document.getElementById('projectName').value = projectName;
+            }
+            
+            // Precargar todas las imágenes
+            this.loadedImages.clear();
+            this.mediaLibrary.forEach(async (media) => {
+                if (media.type === 'image' && media.url) {
+                    try {
+                        const img = await this.loadImage(media.url);
+                        this.loadedImages.set(media.id, img);
+                    } catch (error) {
+                        console.error('Error al cargar imagen del proyecto:', error);
+                    }
+                }
+            });
+            
+            this.renderTimeline();
+            this.renderMediaGrid();
+            this.renderPreview();
+            
+            this.showToast('success', 'Proyecto cargado');
+        } catch (error) {
+            console.error('Error al cargar proyecto:', error);
+            this.showToast('error', 'Error al cargar el proyecto');
+        }
+    }
+    
+    startAutoSave() {
+        setInterval(() => {
+            if (this.timeline.clips.length > 0) {
+                this.saveProject();
+                console.log('✅ Autoguardado realizado');
+            }
+        }, 60000);
+    }
+    
+    openExportModal() {
+        if (this.timeline.clips.length === 0) {
+            this.showToast('error', 'Agrega clips antes de exportar');
+            return;
+        }
+        
+        document.getElementById('exportModal').classList.add('active');
+    }
+    
+    async exportVideo() {
+        const resolution = document.getElementById('resolutionSelect').value;
+        const format = document.getElementById('formatSelect').value;
+        
+        document.getElementById('exportProgress').style.display = 'block';
+        document.getElementById('startExportBtn').disabled = true;
+        
+        this.showToast('info', 'Iniciando exportación...');
+        
+        // Simulación de progreso
+        for (let i = 0; i <= 100; i += 10) {
+            await this.sleep(500);
+            document.getElementById('progressFill').style.width = i + '%';
+            document.getElementById('progressText').textContent = `Exportando... ${i}%`;
+        }
+        
+        try {
+            const blob = await this.renderVideoToBlob();
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `cinevida_${Date.now()}.${format}`;
+            link.click();
+            
+            this.showToast('success', '¡Video exportado exitosamente!');
+        } catch (error) {
+            console.error('Error al exportar:', error);
+            this.showToast('error', 'Error al exportar el video');
+        }
+        
+        document.getElementById('exportModal').classList.remove('active');
+        document.getElementById('exportProgress').style.display = 'none';
+        document.getElementById('startExportBtn').disabled = false;
+    }
+    
+    async renderVideoToBlob() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1920;
+        canvas.height = 1080;
+        
+        const stream = canvas.captureStream(30);
+        const mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'video/webm;codecs=vp9',
+            videoBitsPerSecond: 8000000
+        });
+        
+        const chunks = [];
+        
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                chunks.push(e.data);
+            }
+        };
+        
+        return new Promise((resolve) => {
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                resolve(blob);
+            };
+            
+            mediaRecorder.start();
+            setTimeout(() => {
+                mediaRecorder.stop();
+            }, 3000);
+        });
+    }
+    
+    hidePreviewOverlay() {
+        const overlay = document.getElementById('previewOverlay');
+        if (overlay) {
+            overlay.classList.add('hidden');
+        }
+    }
+    
+    setVolume(volume) {
+        this.audioManager.setVolume(volume);
+    }
+    
+    showToast(type, message) {
+        const container = document.getElementById('toastContainer');
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icon = type === 'success' ? 'fa-check-circle' : 
+                     type === 'error' ? 'fa-exclamation-circle' : 
+                     'fa-info-circle';
+        
+        toast.innerHTML = `
+            <i class="fas ${icon}"></i>
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.transition = 'opacity 0.3s';
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    generateId() {
+        return 'clip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
 
-// Llamar a cargar autoguardado al iniciar
-window.addEventListener('load', cargarAutoguardado);
+// Inicializar editor cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    window.editor = new VideoEditor();
+});
