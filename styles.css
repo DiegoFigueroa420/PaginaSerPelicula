@@ -24,22 +24,27 @@ body {
     color: var(--text-primary);
     overflow: hidden;
     height: 100vh;
+    font-size: 14px;
 }
 
 .dark-mode {
     background: var(--bg-primary);
 }
 
-/* Top Toolbar */
+/* Top Toolbar - Mobile First */
 .top-toolbar {
-    height: 60px;
+    height: auto;
+    min-height: 50px;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
-    gap: 20px;
+    padding: 8px 10px;
+    gap: 8px;
+    position: relative;
+    z-index: 100;
 }
 
 .toolbar-left,
@@ -47,30 +52,32 @@ body {
 .toolbar-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 20px;
+    gap: 6px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--accent-blue);
 }
 
 .logo i {
-    font-size: 24px;
+    font-size: 18px;
 }
 
 .project-name input {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: 6px;
-    font-size: 14px;
-    min-width: 200px;
+    font-size: 12px;
+    min-width: 120px;
+    width: 100%;
 }
 
 .project-name input:focus {
@@ -82,14 +89,15 @@ body {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 6px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
+    font-size: 12px;
 }
 
 .tool-btn:hover {
@@ -103,7 +111,7 @@ body {
 
 .separator {
     width: 1px;
-    height: 24px;
+    height: 20px;
     background: var(--border-color);
 }
 
@@ -111,18 +119,20 @@ body {
     background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
     border: none;
     color: white;
-    padding: 10px 20px;
+    padding: 8px 12px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     transition: all 0.2s;
+    font-size: 12px;
+    white-space: nowrap;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
@@ -130,67 +140,72 @@ body {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 10px 20px;
+    padding: 8px 12px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     transition: all 0.2s;
+    font-size: 12px;
 }
 
 .btn-secondary:hover {
     background: var(--bg-hover);
 }
 
-/* Main Layout */
+/* Main Layout - Mobile First */
 .main-layout {
     display: flex;
-    height: calc(100vh - 60px);
+    flex-direction: column;
+    height: calc(100vh - 50px);
     overflow: hidden;
 }
 
-/* Panels */
+/* Panels - Mobile Layout */
 .left-panel,
 .right-panel {
-    width: 320px;
+    width: 100%;
     background: var(--bg-secondary);
-    border-right: 1px solid var(--border-color);
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: width 0.3s ease;
+    transition: all 0.3s ease;
+    max-height: 40vh;
 }
 
 .right-panel {
-    border-left: 1px solid var(--border-color);
-    border-right: none;
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+    border-bottom: none;
 }
 
-.left-panel.collapsed {
-    width: 0;
-}
-
+.left-panel.collapsed,
 .right-panel.collapsed {
-    width: 0;
+    max-height: 0;
+    min-height: 0;
+    border-bottom: none;
 }
 
 .panel-header {
-    padding: 15px 20px;
+    padding: 10px 12px;
     background: var(--bg-tertiary);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    min-height: 44px;
 }
 
 .panel-header h3 {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .collapse-btn {
@@ -198,8 +213,10 @@ body {
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
     padding: 5px;
+    min-width: 30px;
+    min-height: 30px;
 }
 
 .collapse-btn:hover {
@@ -211,6 +228,7 @@ body {
     display: flex;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
+    min-height: 40px;
 }
 
 .tab-btn {
@@ -218,15 +236,17 @@ body {
     background: none;
     border: none;
     color: var(--text-secondary);
-    padding: 12px;
+    padding: 8px 4px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 11px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 2px;
     border-bottom: 2px solid transparent;
     transition: all 0.2s;
+    min-height: 40px;
 }
 
 .tab-btn:hover {
@@ -243,7 +263,8 @@ body {
     display: none;
     flex: 1;
     overflow-y: auto;
-    padding: 15px;
+    padding: 10px;
+    min-height: 200px;
 }
 
 .tab-content.active {
@@ -255,11 +276,11 @@ body {
     background: var(--bg-tertiary);
     border: 2px dashed var(--border-color);
     border-radius: 8px;
-    padding: 30px;
+    padding: 20px 15px;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .upload-area:hover {
@@ -273,14 +294,15 @@ body {
 }
 
 .upload-area i {
-    font-size: 40px;
+    font-size: 30px;
     color: var(--text-secondary);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .upload-area p {
     color: var(--text-secondary);
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    font-size: 12px;
 }
 
 /* Media Grid */
@@ -288,26 +310,27 @@ body {
 .stock-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-top: 15px;
+    gap: 8px;
+    margin-top: 10px;
 }
 
 .media-item,
 .stock-item {
     position: relative;
     background: var(--bg-tertiary);
-    border-radius: 8px;
+    border-radius: 6px;
     overflow: hidden;
     cursor: grab;
     aspect-ratio: 16/9;
     border: 2px solid transparent;
     transition: all 0.2s;
+    min-height: 80px;
 }
 
 .media-item:hover,
 .stock-item:hover {
     border-color: var(--accent-blue);
-    transform: scale(1.05);
+    transform: scale(1.02);
 }
 
 .media-item img,
@@ -324,16 +347,17 @@ body {
 
 .media-item .delete-btn {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 3px;
+    right: 3px;
     background: rgba(239, 68, 68, 0.9);
     border: none;
     color: white;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: 4px;
     cursor: pointer;
     display: none;
+    font-size: 10px;
 }
 
 .media-item:hover .delete-btn {
@@ -344,25 +368,26 @@ body {
 
 /* Stock Images */
 .stock-images {
-    margin-top: 20px;
+    margin-top: 15px;
 }
 
 .stock-images h4 {
-    font-size: 14px;
-    margin-bottom: 10px;
+    font-size: 13px;
+    margin-bottom: 8px;
 }
 
 .search-box {
     position: relative;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .search-box i {
     position: absolute;
-    left: 10px;
+    left: 8px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-secondary);
+    font-size: 12px;
 }
 
 .search-box input {
@@ -370,9 +395,9 @@ body {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 8px 10px 8px 35px;
+    padding: 6px 8px 6px 28px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .search-box input:focus {
@@ -382,26 +407,27 @@ body {
 
 /* Audio Library */
 .audio-library h4 {
-    font-size: 14px;
-    margin-bottom: 10px;
+    font-size: 13px;
+    margin-bottom: 8px;
 }
 
 .audio-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .audio-item {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    padding: 12px;
+    padding: 10px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     cursor: grab;
     transition: all 0.2s;
+    min-height: 60px;
 }
 
 .audio-item:hover {
@@ -411,25 +437,28 @@ body {
 
 .audio-item i {
     color: var(--accent-purple);
+    font-size: 14px;
 }
 
 .audio-item span {
     flex: 1;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .play-preview {
     background: var(--accent-blue);
     border: none;
     color: white;
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
+    font-size: 10px;
+    flex-shrink: 0;
 }
 
 .play-preview:hover {
@@ -440,11 +469,11 @@ body {
 .text-presets {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .text-presets h4 {
-    font-size: 14px;
+    font-size: 13px;
     margin-bottom: 5px;
 }
 
@@ -452,14 +481,15 @@ body {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 15px;
+    padding: 12px 10px;
     border-radius: 6px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 14px;
+    gap: 8px;
+    font-size: 12px;
     transition: all 0.2s;
+    min-height: 50px;
 }
 
 .text-preset-btn:hover {
@@ -469,6 +499,7 @@ body {
 
 .text-preset-btn i {
     color: var(--accent-blue);
+    font-size: 14px;
 }
 
 /* Center Panel */
@@ -477,11 +508,13 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 300px;
 }
 
 /* Preview Section */
 .preview-section {
-    height: 55%;
+    height: 40vh;
+    min-height: 200px;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -522,52 +555,57 @@ body {
 .drop-zone {
     text-align: center;
     color: var(--text-secondary);
+    padding: 20px;
 }
 
 .drop-zone i {
-    font-size: 60px;
-    margin-bottom: 15px;
+    font-size: 40px;
+    margin-bottom: 10px;
     opacity: 0.5;
 }
 
 .drop-zone p {
-    font-size: 16px;
+    font-size: 14px;
 }
 
 /* Playback Controls */
 .playback-controls {
     background: var(--bg-tertiary);
-    padding: 15px 20px;
+    padding: 10px 12px;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
+    min-height: 60px;
 }
 
 .control-btn {
     background: var(--accent-blue);
     border: none;
     color: white;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
+    font-size: 12px;
+    flex-shrink: 0;
 }
 
 .control-btn:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .time-display {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
+    gap: 6px;
+    font-size: 12px;
     font-weight: 500;
+    flex-shrink: 0;
 }
 
 .time-display .separator {
@@ -577,16 +615,18 @@ body {
 .volume-control {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     margin-left: auto;
+    flex-shrink: 0;
 }
 
 .volume-control i {
     color: var(--text-secondary);
+    font-size: 12px;
 }
 
 .volume-control input {
-    width: 100px;
+    width: 80px;
 }
 
 /* Timeline Section */
@@ -596,38 +636,41 @@ body {
     flex-direction: column;
     background: var(--bg-secondary);
     overflow: hidden;
+    min-height: 200px;
 }
 
 .timeline-header {
-    padding: 15px 20px;
+    padding: 10px 12px;
     background: var(--bg-tertiary);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    min-height: 44px;
 }
 
 .timeline-header h3 {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .timeline-tools {
     display: flex;
-    gap: 5px;
+    gap: 4px;
 }
 
 .timeline-container {
     flex: 1;
     overflow: auto;
     position: relative;
+    min-height: 150px;
 }
 
 .timeline-ruler {
-    height: 40px;
+    height: 30px;
     background: var(--bg-tertiary);
     border-bottom: 1px solid var(--border-color);
     position: sticky;
@@ -638,8 +681,9 @@ body {
         var(--border-color) 0,
         var(--border-color) 1px,
         transparent 1px,
-        transparent 100px
+        transparent 50px
     );
+    min-width: 1000px;
 }
 
 .playhead {
@@ -656,37 +700,39 @@ body {
     content: '';
     position: absolute;
     top: 0;
-    left: -6px;
-    width: 14px;
-    height: 14px;
+    left: -4px;
+    width: 10px;
+    height: 10px;
     background: var(--accent-blue);
     border-radius: 50%;
 }
 
 .timeline-tracks {
-    min-width: 100%;
+    min-width: 1000px;
 }
 
 .track {
     display: flex;
     border-bottom: 1px solid var(--border-color);
-    min-height: 80px;
+    min-height: 60px;
 }
 
 .track-header {
-    width: 150px;
+    width: 80px;
     background: var(--bg-tertiary);
     border-right: 1px solid var(--border-color);
-    padding: 15px;
+    padding: 8px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 14px;
+    gap: 6px;
+    font-size: 11px;
     font-weight: 500;
+    flex-shrink: 0;
 }
 
 .track-header i {
     color: var(--accent-blue);
+    font-size: 12px;
 }
 
 .track-toggle {
@@ -695,7 +741,8 @@ body {
     color: var(--text-secondary);
     cursor: pointer;
     margin-left: auto;
-    padding: 5px;
+    padding: 3px;
+    font-size: 10px;
 }
 
 .track-toggle:hover {
@@ -705,33 +752,35 @@ body {
 .track-content {
     flex: 1;
     position: relative;
-    min-height: 80px;
-    padding: 10px;
+    min-height: 60px;
+    padding: 6px;
+    min-width: 200px;
 }
 
 /* Clip on Timeline */
 .timeline-clip {
     position: absolute;
-    top: 10px;
-    height: 60px;
+    top: 6px;
+    height: 48px;
     background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-    border-radius: 6px;
+    border-radius: 4px;
     border: 2px solid transparent;
     cursor: grab;
     overflow: hidden;
     display: flex;
     align-items: center;
-    padding: 0 10px;
+    padding: 0 6px;
     color: white;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 500;
     transition: all 0.2s;
+    min-width: 40px;
 }
 
 .timeline-clip:hover {
     border-color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px var(--shadow);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px var(--shadow);
 }
 
 .timeline-clip.selected {
@@ -745,16 +794,18 @@ body {
 }
 
 .timeline-clip .clip-thumbnail {
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    border-radius: 3px;
     object-fit: cover;
-    margin-right: 8px;
+    margin-right: 6px;
+    flex-shrink: 0;
 }
 
 .timeline-clip .clip-info {
     flex: 1;
     overflow: hidden;
+    min-width: 0;
 }
 
 .timeline-clip .clip-name {
@@ -762,10 +813,11 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 9px;
 }
 
 .timeline-clip .clip-duration {
-    font-size: 10px;
+    font-size: 8px;
     opacity: 0.8;
 }
 
@@ -773,7 +825,7 @@ body {
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 8px;
+    width: 6px;
     cursor: ew-resize;
     background: rgba(255, 255, 255, 0.2);
 }
@@ -790,40 +842,41 @@ body {
 .properties-content {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding: 12px;
+    min-height: 200px;
 }
 
 .no-selection {
     text-align: center;
     color: var(--text-secondary);
-    padding: 40px 20px;
+    padding: 30px 15px;
 }
 
 .no-selection i {
-    font-size: 48px;
-    margin-bottom: 15px;
+    font-size: 36px;
+    margin-bottom: 10px;
     opacity: 0.5;
 }
 
 .property-group {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .property-group h4 {
-    font-size: 14px;
-    margin-bottom: 12px;
+    font-size: 13px;
+    margin-bottom: 10px;
     color: var(--accent-blue);
 }
 
 .property-item {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .property-item label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-secondary);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .property-item input[type="text"],
@@ -833,9 +886,9 @@ body {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 8px 10px;
+    padding: 6px 8px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .property-item input:focus,
@@ -850,7 +903,7 @@ body {
 
 .property-item input[type="color"] {
     width: 100%;
-    height: 40px;
+    height: 35px;
     border-radius: 6px;
     cursor: pointer;
 }
@@ -859,15 +912,16 @@ body {
 .effects-panel {
     border-top: 1px solid var(--border-color);
     background: var(--bg-tertiary);
+    min-height: 150px;
 }
 
 .effects-panel h4 {
-    padding: 15px 20px;
-    font-size: 14px;
+    padding: 10px 12px;
+    font-size: 13px;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .effects-tabs {
@@ -880,15 +934,16 @@ body {
     background: none;
     border: none;
     color: var(--text-secondary);
-    padding: 10px;
+    padding: 8px 4px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     border-bottom: 2px solid transparent;
     transition: all 0.2s;
+    min-height: 50px;
 }
 
 .effect-tab:hover {
@@ -902,7 +957,8 @@ body {
 
 .effect-content {
     display: none;
-    padding: 15px;
+    padding: 10px;
+    min-height: 100px;
 }
 
 .effect-content.active {
@@ -912,31 +968,32 @@ body {
 .effect-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 8px;
 }
 
 .effect-item {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    padding: 15px;
+    padding: 10px;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     transition: all 0.2s;
+    min-height: 70px;
 }
 
 .effect-item:hover {
     background: var(--bg-hover);
     border-color: var(--accent-blue);
-    transform: scale(1.05);
+    transform: scale(1.02);
 }
 
 .effect-preview {
     width: 100%;
-    height: 60px;
+    height: 40px;
     background: var(--bg-primary);
     border-radius: 4px;
     position: relative;
@@ -944,12 +1001,13 @@ body {
 }
 
 .effect-item span {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 500;
+    text-align: center;
 }
 
 .effect-item i {
-    font-size: 24px;
+    font-size: 18px;
     color: var(--accent-blue);
 }
 
@@ -957,23 +1015,23 @@ body {
 .filter-controls {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
 .control-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
 .control-group label {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-secondary);
 }
 
 .filter-slider {
     width: 100%;
-    height: 6px;
+    height: 5px;
     border-radius: 3px;
     background: var(--bg-secondary);
     outline: none;
@@ -982,16 +1040,16 @@ body {
 
 .filter-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: var(--accent-blue);
     cursor: pointer;
 }
 
 .filter-slider::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: var(--accent-blue);
     cursor: pointer;
@@ -999,7 +1057,7 @@ body {
 }
 
 .control-group .value {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--accent-blue);
     font-weight: 600;
 }
@@ -1009,10 +1067,11 @@ body {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.9);
     z-index: 1000;
     align-items: center;
     justify-content: center;
+    padding: 10px;
 }
 
 .modal.active {
@@ -1021,16 +1080,17 @@ body {
 
 .modal-content {
     background: var(--bg-secondary);
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh;
     overflow: hidden;
-    box-shadow: 0 20px 60px var(--shadow);
+    box-shadow: 0 10px 40px var(--shadow);
 }
 
 .modal-header {
     background: var(--bg-tertiary);
-    padding: 20px;
+    padding: 15px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1038,11 +1098,11 @@ body {
 }
 
 .modal-header h3 {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .close-btn {
@@ -1050,8 +1110,10 @@ body {
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 20px;
+    font-size: 18px;
     padding: 5px;
+    min-width: 30px;
+    min-height: 30px;
 }
 
 .close-btn:hover {
@@ -1059,33 +1121,35 @@ body {
 }
 
 .modal-body {
-    padding: 25px;
+    padding: 15px;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .modal-footer {
-    padding: 20px;
+    padding: 15px;
     background: var(--bg-tertiary);
     border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 8px;
 }
 
 /* Export Options */
 .export-options {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
 .option-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .option-group label {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
 }
 
@@ -1093,9 +1157,9 @@ body {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 10px;
+    padding: 8px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .option-group select:focus {
@@ -1104,16 +1168,16 @@ body {
 }
 
 .export-progress {
-    margin-top: 20px;
+    margin-top: 15px;
 }
 
 .progress-bar {
     width: 100%;
-    height: 8px;
+    height: 6px;
     background: var(--bg-tertiary);
-    border-radius: 4px;
+    border-radius: 3px;
     overflow: hidden;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .progress-fill {
@@ -1125,19 +1189,20 @@ body {
 
 #progressText {
     text-align: center;
-    font-size: 14px;
+    font-size: 12px;
     color: var(--text-secondary);
 }
 
 /* Toast Notifications */
 .toast-container {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 10px;
+    right: 10px;
     z-index: 2000;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
+    max-width: calc(100vw - 20px);
 }
 
 .toast {
@@ -1145,12 +1210,13 @@ body {
     border: 1px solid var(--border-color);
     border-left: 4px solid var(--accent-blue);
     border-radius: 6px;
-    padding: 15px 20px;
-    min-width: 300px;
+    padding: 12px 15px;
+    min-width: 250px;
+    max-width: 300px;
     box-shadow: 0 4px 12px var(--shadow);
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     animation: slideIn 0.3s ease;
 }
 
@@ -1163,7 +1229,7 @@ body {
 }
 
 .toast i {
-    font-size: 20px;
+    font-size: 16px;
 }
 
 .toast.success i {
@@ -1176,7 +1242,7 @@ body {
 
 @keyframes slideIn {
     from {
-        transform: translateX(400px);
+        transform: translateX(100px);
         opacity: 0;
     }
     to {
@@ -1185,181 +1251,24 @@ body {
     }
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--bg-hover);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--border-color);
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-    .left-panel,
-    .right-panel {
-        width: 280px;
-    }
-}
-
-@media (max-width: 768px) {
-    .top-toolbar {
-        flex-wrap: wrap;
-        height: auto;
-        padding: 10px;
-    }
-    
-    .toolbar-center {
-        order: 3;
-        width: 100%;
-        justify-content: center;
-        margin-top: 10px;
-    }
-    
-    .main-layout {
-        flex-direction: column;
-        height: auto;
-    }
-    
-    .left-panel,
-    .right-panel {
-        width: 100%;
-        height: 300px;
-    }
-    
-    .left-panel.collapsed,
-    .right-panel.collapsed {
-        height: 0;
-        width: 100%;
-    }
-    
-    .center-panel {
-        height: 500px;
-    }
-    
-    .preview-section {
-        height: 60%;
-    }
-    
-    .timeline-section {
-        height: 40%;
-    }
-    
-    .track-header {
-        width: 100px;
-    }
-    
-    .btn-primary,
-    .btn-secondary {
-        padding: 8px 16px;
-        font-size: 14px;
-    }
-}
-
-@media (max-width: 480px) {
-    .top-toolbar {
-        padding: 5px;
-    }
-    
-    .project-name input {
-        min-width: 150px;
-    }
-    
-    .tool-btn {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .media-grid,
-    .stock-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .track-header {
-        width: 80px;
-        padding: 10px;
-    }
-    
-    .timeline-clip {
-        height: 50px;
-        padding: 0 5px;
-    }
-    
-    .clip-thumbnail {
-        width: 30px;
-        height: 30px;
-    }
-    
-    .modal-content {
-        width: 95%;
-        margin: 10px;
-    }
-}
-
-/* Mejoras para la interfaz de audio */
-.track-info {
-    flex: 1;
-    overflow: hidden;
-}
-
-.track-title {
-    font-weight: 600;
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.track-artist {
-    font-size: 11px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Mejoras responsive para móviles */
-@media (max-width: 480px) {
-    .audio-item {
-        padding: 10px;
-    }
-    
-    .track-title {
-        font-size: 12px;
-    }
-    
-    .track-artist {
-        font-size: 10px;
-    }
-}
-
 /* Mejoras para la interfaz de audio */
 .track-info {
     flex: 1;
     overflow: hidden;
     position: relative;
+    min-width: 0;
 }
 
 .track-title {
     font-weight: 600;
-    font-size: 13px;
+    font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .track-artist {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
@@ -1372,15 +1281,15 @@ body {
     left: 0;
     background: var(--accent-green);
     color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 8px;
     font-weight: 600;
 }
 
 .reliable-badge i {
-    font-size: 8px;
-    margin-right: 3px;
+    font-size: 7px;
+    margin-right: 2px;
 }
 
 .audio-item.reliable {
@@ -1389,62 +1298,33 @@ body {
 
 .no-results {
     text-align: center;
-    padding: 40px 20px;
+    padding: 30px 15px;
     color: var(--text-secondary);
 }
 
 .no-results i {
-    font-size: 48px;
-    margin-bottom: 15px;
+    font-size: 36px;
+    margin-bottom: 10px;
     opacity: 0.5;
 }
 
 .audio-notice {
-    margin-top: 10px;
-    padding: 12px;
+    margin-top: 8px;
+    padding: 10px;
     background: rgba(59, 130, 246, 0.1);
-    border-radius: 8px;
-    font-size: 12px;
+    border-radius: 6px;
+    font-size: 11px;
     color: var(--text-secondary);
     border-left: 3px solid var(--accent-blue);
 }
 
 .audio-notice i {
     color: var(--accent-blue);
-    margin-right: 8px;
+    margin-right: 6px;
+    font-size: 11px;
 }
 
 /* Estados de reproducción */
-.audio-item.playing {
-    background: rgba(59, 130, 246, 0.15);
-    border-color: var(--accent-blue);
-}
-
-.audio-item.playing .play-preview {
-    background: var(--accent-green);
-}
-
-/* Mejoras responsive para móviles */
-@media (max-width: 480px) {
-    .audio-item {
-        padding: 10px;
-    }
-    
-    .track-title {
-        font-size: 12px;
-    }
-    
-    .track-artist {
-        font-size: 10px;
-    }
-    
-    .reliable-badge {
-        font-size: 8px;
-        padding: 1px 4px;
-    }
-}
-
-/* Estados de reproducción mejorados */
 .audio-item.playing {
     background: rgba(59, 130, 246, 0.15);
     border-color: var(--accent-blue);
@@ -1465,4 +1345,526 @@ body {
 
 .audio-item.playing .play-preview i {
     transform: scale(0.9);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg-hover);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-color);
+}
+
+/* Responsive para tablets */
+@media (min-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+    
+    .top-toolbar {
+        height: 60px;
+        padding: 0 15px;
+        gap: 15px;
+        flex-wrap: nowrap;
+    }
+    
+    .toolbar-left,
+    .toolbar-center,
+    .toolbar-right {
+        gap: 10px;
+        flex-wrap: nowrap;
+    }
+    
+    .logo {
+        font-size: 20px;
+    }
+    
+    .logo i {
+        font-size: 22px;
+    }
+    
+    .project-name input {
+        min-width: 180px;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+    
+    .tool-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    .main-layout {
+        flex-direction: row;
+        height: calc(100vh - 60px);
+    }
+    
+    .left-panel,
+    .right-panel {
+        width: 280px;
+        max-height: none;
+        border-bottom: none;
+        border-right: 1px solid var(--border-color);
+    }
+    
+    .right-panel {
+        border-left: 1px solid var(--border-color);
+        border-top: none;
+    }
+    
+    .left-panel.collapsed,
+    .right-panel.collapsed {
+        width: 0;
+        max-height: none;
+    }
+    
+    .panel-header {
+        padding: 15px 20px;
+    }
+    
+    .panel-header h3 {
+        font-size: 16px;
+    }
+    
+    .tab-btn {
+        padding: 12px;
+        font-size: 12px;
+        flex-direction: row;
+    }
+    
+    .media-grid,
+    .stock-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .track-header {
+        width: 120px;
+        padding: 12px;
+        font-size: 13px;
+    }
+    
+    .timeline-clip {
+        height: 60px;
+        padding: 0 10px;
+    }
+    
+    .clip-thumbnail {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Responsive para desktop */
+@media (min-width: 1024px) {
+    .left-panel,
+    .right-panel {
+        width: 320px;
+    }
+    
+    .media-grid,
+    .stock-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .track-header {
+        width: 150px;
+    }
+    
+    .effect-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Orientación landscape para móviles */
+@media (max-height: 600px) and (orientation: landscape) {
+    .main-layout {
+        flex-direction: row;
+    }
+    
+    .left-panel,
+    .right-panel {
+        width: 250px;
+        max-height: none;
+    }
+    
+    .preview-section {
+        height: 50vh;
+    }
+    
+    .panel-tabs {
+        min-height: 35px;
+    }
+    
+    .tab-btn {
+        min-height: 35px;
+        font-size: 10px;
+    }
+}
+
+/* Mejoras de usabilidad táctil */
+@media (pointer: coarse) {
+    .tool-btn,
+    .control-btn,
+    .play-preview,
+    .collapse-btn,
+    .close-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .tab-btn,
+    .effect-tab {
+        min-height: 44px;
+    }
+    
+    .media-item,
+    .stock-item,
+    .audio-item,
+    .text-preset-btn,
+    .effect-item {
+        cursor: pointer;
+    }
+    
+    .timeline-clip {
+        min-width: 60px;
+    }
+    
+    .resize-handle {
+        min-width: 12px;
+    }
+}
+
+/* Soporte para dispositivos muy pequeños */
+@media (max-width: 360px) {
+    .top-toolbar {
+        padding: 6px 8px;
+    }
+    
+    .toolbar-center {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        margin-top: 5px;
+    }
+    
+    .project-name input {
+        min-width: 100px;
+    }
+    
+    .media-grid,
+    .stock-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .track-header {
+        width: 70px;
+        padding: 6px;
+        font-size: 10px;
+    }
+    
+    .timeline-clip {
+        height: 45px;
+    }
+    
+    .clip-thumbnail {
+        width: 25px;
+        height: 25px;
+    }
+}
+
+/* Prevenir zoom en inputs en iOS */
+@media (max-width: 768px) {
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Timeline Section - Mobile Fix */
+.timeline-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    overflow: hidden;
+    min-height: 200px;
+}
+
+.timeline-container {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    min-height: 150px;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling en iOS */
+}
+
+.timeline-ruler {
+    height: 30px;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-image: repeating-linear-gradient(
+        to right,
+        var(--border-color) 0,
+        var(--border-color) 1px,
+        transparent 1px,
+        transparent 50px
+    );
+    min-width: 800px; /* Reducido para móvil */
+}
+
+.timeline-tracks {
+    min-width: 800px; /* Reducido para móvil */
+}
+
+.track {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    min-height: 60px;
+}
+
+.track-header {
+    width: 70px; /* Más pequeño para móvil */
+    background: var(--bg-tertiary);
+    border-right: 1px solid var(--border-color);
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.track-content {
+    flex: 1;
+    position: relative;
+    min-height: 60px;
+    padding: 6px;
+    min-width: 150px;
+}
+
+/* Clip en Timeline - Mobile Optimizado */
+.timeline-clip {
+    position: absolute;
+    top: 6px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    border-radius: 4px;
+    border: 2px solid transparent;
+    cursor: grab;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    color: white;
+    font-size: 9px;
+    font-weight: 500;
+    transition: all 0.2s;
+    min-width: 50px; /* Mínimo más grande para móvil */
+}
+
+/* Scroll horizontal mejorado para móvil */
+.timeline-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.timeline-container::-webkit-scrollbar-thumb {
+    background: var(--accent-blue);
+    border-radius: 4px;
+}
+
+/* Para tablets y desktop */
+@media (min-width: 768px) {
+    .timeline-ruler {
+        min-width: 1000px;
+    }
+    
+    .timeline-tracks {
+        min-width: 1000px;
+    }
+    
+    .track-header {
+        width: 120px;
+        font-size: 13px;
+    }
+}
+
+/* Properties Panel - Mobile Modal Style */
+.properties-panel-mobile {
+    display: none;
+}
+
+.properties-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 3000;
+    padding: 10px;
+}
+
+.properties-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.properties-modal-content {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 10px 40px var(--shadow);
+}
+
+.properties-modal-header {
+    background: var(--bg-tertiary);
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.properties-modal-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.properties-modal-body {
+    padding: 15px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.properties-modal-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.properties-modal-close:hover {
+    color: var(--text-primary);
+}
+
+/* Botón flotante para propiedades en móvil */
+.properties-floating-btn {
+    position: fixed;
+    bottom: 80px;
+    right: 15px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    border: none;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    z-index: 2000;
+    font-size: 18px;
+    transition: all 0.3s;
+}
+
+.properties-floating-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(59, 130, 246, 0.6);
+}
+
+/* Ocultar panel derecho original en móvil */
+@media (max-width: 768px) {
+    .right-panel {
+        display: none !important;
+    }
+    
+    .properties-floating-btn {
+        display: flex;
+    }
+    
+    /* Ajustar layout principal cuando propiedades está oculto */
+    .main-layout:not(.properties-open) .center-panel {
+        width: 100%;
+    }
+}
+
+/* Para desktop, mostrar panel normal */
+@media (min-width: 769px) {
+    .properties-modal {
+        display: none !important;
+    }
+    
+    .properties-floating-btn {
+        display: none !important;
+    }
+    
+    .right-panel {
+        display: flex !important;
+    }
+}
+
+/* Efecto cuando el modal está abierto */
+body.properties-modal-open {
+    overflow: hidden;
+}
+
+/* Mejoras para el contenido de propiedades en móvil */
+.properties-modal-body .property-group {
+    margin-bottom: 20px;
+}
+
+.properties-modal-body .property-item {
+    margin-bottom: 15px;
+}
+
+.properties-modal-body input,
+.properties-modal-body select {
+    font-size: 16px !important; /* Prevenir zoom en iOS */
 }

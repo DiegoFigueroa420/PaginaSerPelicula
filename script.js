@@ -8,54 +8,36 @@ class AudioManager {
         this.currentAudio = null;
         this.isAudioPlaying = false;
         this.userInteracted = false;
+        this.currentAudioElement = null;
         
         this.setupAudioInteraction();
     }
     
     setupAudioInteraction() {
-        // Permitir reproducción después de la primera interacción del usuario
         const enableAudio = () => {
             if (!this.userInteracted) {
                 this.userInteracted = true;
-                console.log('🎵 Audio activado - El usuario ha interactuado con la página');
-                
-                // Mostrar notificación visual
-                if (window.editor && window.editor.showToast) {
-                    window.editor.showToast('success', '✅ Audio activado. Ya puedes reproducir música.');
-                }
+                console.log('🎵 Audio activado');
             }
         };
         
-        // Escuchar múltiples eventos de interacción
         document.addEventListener('click', enableAudio);
         document.addEventListener('touchstart', enableAudio);
-        document.addEventListener('keydown', enableAudio);
-        document.addEventListener('mousedown', enableAudio);
     }
     
     async playAudio(url, element) {
-        console.log('🔊 Intentando reproducir:', url);
-        
         if (!this.userInteracted) {
-            console.log('❌ Audio bloqueado - Esperando interacción del usuario');
             if (window.editor && window.editor.showToast) {
-                window.editor.showToast('info', '🎵 Haz clic en cualquier parte de la página para activar el audio');
+                window.editor.showToast('info', '🎵 Toca cualquier parte para activar audio');
             }
             return false;
         }
         
-        // Verificar que la URL sea válida
         if (!url || url === '' || !url.startsWith('http')) {
-            console.error('❌ URL de audio inválida:', url);
-            if (window.editor && window.editor.showToast) {
-                window.editor.showToast('error', '❌ URL de audio no válida');
-            }
             return false;
         }
         
-        // Si ya está reproduciendo este audio, pausarlo
         if (this.isAudioPlaying && this.currentAudio === url) {
-            console.log('⏸️ Pausando audio actual');
             this.pauseAudio();
             if (element) {
                 element.querySelector('.play-preview i').className = 'fas fa-play';
@@ -64,9 +46,7 @@ class AudioManager {
             return true;
         }
         
-        // Detener audio actual si hay uno reproduciéndose
         if (this.isAudioPlaying) {
-            console.log('🛑 Deteniendo audio anterior');
             this.pauseAudio();
             document.querySelectorAll('.play-preview i').forEach(icon => {
                 icon.className = 'fas fa-play';
@@ -77,45 +57,36 @@ class AudioManager {
         }
         
         try {
-            console.log('🎵 Creando nuevo elemento de audio...');
-            
-            // Crear nuevo elemento de audio
             const audio = new Audio();
             audio.src = url;
             audio.volume = document.getElementById('volumeSlider') ? 
                           document.getElementById('volumeSlider').value / 100 : 0.7;
             
-            // Configurar eventos
             audio.onended = () => {
-                console.log('✅ Audio terminado');
                 if (element) {
                     element.querySelector('.play-preview i').className = 'fas fa-play';
                     element.classList.remove('playing');
                 }
                 this.isAudioPlaying = false;
                 this.currentAudio = null;
+                this.currentAudioElement = null;
             };
             
             audio.onerror = (e) => {
-                console.error('❌ Error de audio:', e);
                 if (element) {
                     element.querySelector('.play-preview i').className = 'fas fa-play';
                     element.classList.remove('playing');
                 }
                 this.isAudioPlaying = false;
                 this.currentAudio = null;
-                if (window.editor && window.editor.showToast) {
-                    window.editor.showToast('error', '❌ Error al reproducir el audio. Intenta con otra canción.');
-                }
+                this.currentAudioElement = null;
             };
             
-            // Intentar reproducir
-            console.log('▶️ Intentando reproducción...');
             await audio.play();
             
-            console.log('✅ Audio reproduciéndose correctamente');
             this.audioElements.set(url, audio);
             this.currentAudio = url;
+            this.currentAudioElement = element;
             this.isAudioPlaying = true;
             
             if (element) {
@@ -123,17 +94,10 @@ class AudioManager {
                 element.classList.add('playing');
             }
             
-            if (window.editor && window.editor.showToast) {
-                window.editor.showToast('success', '🎵 Reproduciendo preview...');
-            }
-            
             return true;
             
         } catch (error) {
-            console.error('❌ Error al reproducir audio:', error);
-            if (window.editor && window.editor.showToast) {
-                window.editor.showToast('error', '❌ No se pudo reproducir el audio. Intenta con otra canción.');
-            }
+            console.error('Error al reproducir audio:', error);
             return false;
         }
     }
@@ -143,35 +107,43 @@ class AudioManager {
             const audio = this.audioElements.get(this.currentAudio);
             audio.pause();
             audio.currentTime = 0;
-            console.log('⏸️ Audio pausado');
+            
+            if (this.currentAudioElement) {
+                this.currentAudioElement.querySelector('.play-preview i').className = 'fas fa-play';
+                this.currentAudioElement.classList.remove('playing');
+            }
         }
         this.isAudioPlaying = false;
         this.currentAudio = null;
+        this.currentAudioElement = null;
+    }
+    
+    toggleAudio(url, element) {
+        if (this.isAudioPlaying && this.currentAudio === url) {
+            this.pauseAudio();
+            return false;
+        } else {
+            return this.playAudio(url, element);
+        }
     }
     
     setVolume(volume) {
         this.audioElements.forEach(audio => {
             audio.volume = volume;
         });
-        console.log('🔊 Volumen ajustado a:', volume);
     }
     
-    // Reproducir audio en la timeline durante la edición
     playTimelineAudio(clip, currentTime) {
         if (!this.userInteracted) return;
         
         const clipStart = clip.startTime;
         const clipEnd = clip.startTime + clip.duration;
         
-        // Si el tiempo actual está dentro del rango del clip de audio
         if (currentTime >= clipStart && currentTime <= clipEnd && clip.url) {
-            // Si no está reproduciendo o es un audio diferente
             if (!this.isAudioPlaying || this.currentAudio !== clip.url) {
-                console.log('🎵 Reproduciendo audio de timeline:', clip.name);
                 this.playAudio(clip.url, null);
             }
         } else {
-            // Si el tiempo actual está fuera del clip, pausar
             if (this.isAudioPlaying && this.currentAudio === clip.url) {
                 this.pauseAudio();
             }
@@ -204,7 +176,6 @@ class VideoEditor {
             future: []
         };
         
-        // Sistema de audio mejorado
         this.audioManager = new AudioManager();
         
         this.canvas = document.getElementById('previewCanvas');
@@ -219,9 +190,11 @@ class VideoEditor {
         this.setupEventListeners();
         this.setupDragAndDrop();
         this.setupTabs();
+        this.setupMobileProperties();
         this.loadStockImages();
         this.loadDefaultMusic();
         this.startAutoSave();
+        this.loadProject();
         this.renderPreview();
         
         console.log('🎬 CineVida Editor inicializado');
@@ -339,6 +312,11 @@ class VideoEditor {
             this.seekTo(e);
         });
         
+        // Project name change
+        document.getElementById('projectName').addEventListener('change', (e) => {
+            this.saveProject();
+        });
+        
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -368,6 +346,173 @@ class VideoEditor {
         });
     }
     
+    setupMobileProperties() {
+        // Crear botón flotante para móvil
+        const floatingBtn = document.createElement('button');
+        floatingBtn.className = 'properties-floating-btn';
+        floatingBtn.innerHTML = '<i class="fas fa-sliders-h"></i>';
+        floatingBtn.title = 'Propiedades';
+        document.body.appendChild(floatingBtn);
+
+        // Crear modal para propiedades
+        const propertiesModal = document.createElement('div');
+        propertiesModal.className = 'properties-modal';
+        propertiesModal.innerHTML = `
+            <div class="properties-modal-content">
+                <div class="properties-modal-header">
+                    <h3><i class="fas fa-sliders-h"></i> Propiedades</h3>
+                    <button class="properties-modal-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="properties-modal-body" id="propertiesModalContent">
+                    <div class="no-selection">
+                        <i class="fas fa-hand-pointer"></i>
+                        <p>Selecciona un elemento para editar sus propiedades</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(propertiesModal);
+
+        // Event listeners
+        floatingBtn.addEventListener('click', () => {
+            this.openPropertiesModal();
+        });
+
+        propertiesModal.querySelector('.properties-modal-close').addEventListener('click', () => {
+            this.closePropertiesModal();
+        });
+
+        // Cerrar modal al hacer clic fuera
+        propertiesModal.addEventListener('click', (e) => {
+            if (e.target === propertiesModal) {
+                this.closePropertiesModal();
+            }
+        });
+
+        // Cerrar con ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && propertiesModal.classList.contains('active')) {
+                this.closePropertiesModal();
+            }
+        });
+    }
+
+    openPropertiesModal() {
+        const modal = document.querySelector('.properties-modal');
+        const modalContent = document.getElementById('propertiesModalContent');
+        
+        // Actualizar contenido del modal
+        if (this.selectedClip) {
+            this.updatePropertiesModalContent(modalContent);
+        } else {
+            modalContent.innerHTML = `
+                <div class="no-selection">
+                    <i class="fas fa-hand-pointer"></i>
+                    <p>Selecciona un elemento para editar sus propiedades</p>
+                </div>
+            `;
+        }
+        
+        modal.classList.add('active');
+        document.body.classList.add('properties-modal-open');
+    }
+
+    closePropertiesModal() {
+        const modal = document.querySelector('.properties-modal');
+        modal.classList.remove('active');
+        document.body.classList.remove('properties-modal-open');
+    }
+
+    updatePropertiesModalContent(container) {
+        const clip = this.selectedClip;
+        
+        let specificProperties = '';
+        
+        if (clip.type === 'text') {
+            specificProperties = `
+                <div class="property-group">
+                    <h4><i class="fas fa-font"></i> Texto</h4>
+                    <div class="property-item">
+                        <label>Contenido</label>
+                        <input type="text" value="${clip.text || ''}" id="modalClipText">
+                    </div>
+                    <div class="property-item">
+                        <label>Tamaño de fuente</label>
+                        <input type="number" value="${clip.fontSize || 48}" min="12" max="200" id="modalFontSize">
+                    </div>
+                    <div class="property-item">
+                        <label>Color</label>
+                        <input type="color" value="${clip.color || '#ffffff'}" id="modalTextColor">
+                    </div>
+                    <div class="property-item">
+                        <label>Fuente</label>
+                        <select id="modalFontFamily">
+                            <option value="Inter" ${clip.fontFamily === 'Inter' ? 'selected' : ''}>Inter</option>
+                            <option value="Arial" ${clip.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
+                            <option value="Georgia" ${clip.fontFamily === 'Georgia' ? 'selected' : ''}>Georgia</option>
+                            <option value="Impact" ${clip.fontFamily === 'Impact' ? 'selected' : ''}>Impact</option>
+                        </select>
+                    </div>
+                    <div class="property-item">
+                        <label>Posición Y (%)</label>
+                        <input type="range" value="${clip.positionY || 50}" min="0" max="100" id="modalPositionY">
+                        <span id="modalPositionYValue">${clip.positionY || 50}%</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = `
+            <div class="property-group">
+                <h4><i class="fas fa-info-circle"></i> Información</h4>
+                <div class="property-item">
+                    <label>Nombre</label>
+                    <input type="text" value="${clip.name}" id="modalClipName">
+                </div>
+                <div class="property-item">
+                    <label>Inicio (s)</label>
+                    <input type="number" value="${clip.startTime.toFixed(2)}" step="0.1" id="modalClipStart">
+                </div>
+                <div class="property-item">
+                    <label>Duración (s)</label>
+                    <input type="number" value="${clip.duration.toFixed(2)}" step="0.1" min="0.1" id="modalClipDuration">
+                </div>
+            </div>
+            ${specificProperties}
+            <div class="property-group">
+                <button class="btn-primary" style="width: 100%;" onclick="window.editor.closePropertiesModal()">
+                    <i class="fas fa-check"></i> Aplicar Cambios
+                </button>
+            </div>
+        `;
+        
+        // Event listeners para inputs del modal
+        const handlers = {
+            'modalClipName': (e) => { clip.name = e.target.value; this.renderTimeline(); },
+            'modalClipStart': (e) => { clip.startTime = parseFloat(e.target.value) || 0; this.renderTimeline(); },
+            'modalClipDuration': (e) => { clip.duration = Math.max(0.1, parseFloat(e.target.value) || 1); this.renderTimeline(); },
+            'modalClipText': (e) => { clip.text = e.target.value; this.renderPreview(); },
+            'modalFontSize': (e) => { clip.fontSize = parseInt(e.target.value) || 48; this.renderPreview(); },
+            'modalTextColor': (e) => { clip.color = e.target.value; this.renderPreview(); },
+            'modalFontFamily': (e) => { clip.fontFamily = e.target.value; this.renderPreview(); },
+            'modalPositionY': (e) => { 
+                clip.positionY = parseInt(e.target.value);
+                const valueDisplay = container.querySelector('#modalPositionYValue');
+                if (valueDisplay) valueDisplay.textContent = clip.positionY + '%';
+                this.renderPreview();
+            }
+        };
+        
+        Object.keys(handlers).forEach(id => {
+            const element = container.querySelector('#' + id);
+            if (element) {
+                element.addEventListener('input', handlers[id]);
+            }
+        });
+    }
+    
     setupDragAndDrop() {
         const uploadArea = document.getElementById('uploadArea');
         
@@ -392,14 +537,13 @@ class VideoEditor {
             this.handleFiles(files);
         });
         
-        // Hacer upload area clickeable - SOLUCIÓN AL BUG: prevenir múltiples clics
+        // Hacer upload area clickeable
         let uploadClickInProgress = false;
         uploadArea.addEventListener('click', () => {
             if (!uploadClickInProgress) {
                 uploadClickInProgress = true;
                 document.getElementById('fileInput').click();
                 
-                // Resetear después de un tiempo
                 setTimeout(() => {
                     uploadClickInProgress = false;
                 }, 1000);
@@ -421,7 +565,6 @@ class VideoEditor {
                 btn.classList.add('active');
                 document.getElementById(tabName + 'Tab').classList.add('active');
                 
-                // Si es la pestaña de audio, cargar música
                 if (tabName === 'audio') {
                     this.loadDefaultMusic();
                 }
@@ -434,7 +577,6 @@ class VideoEditor {
         
         console.log(`📁 Procesando ${files.length} archivos...`);
         
-        // SOLUCIÓN AL BUG: Usar Set para evitar duplicados
         const uniqueFiles = Array.from(new Set(Array.from(files)));
         
         for (const file of uniqueFiles) {
@@ -449,13 +591,11 @@ class VideoEditor {
     }
     
     async addImageFile(file) {
-        // SOLUCIÓN AL BUG: Verificar si el archivo ya existe en la biblioteca
         const existingFile = this.mediaLibrary.find(media => 
             media.name === file.name && media.type === 'image'
         );
         
         if (existingFile) {
-            console.log('🔄 Imagen ya existe en la biblioteca:', file.name);
             this.showToast('info', `"${file.name}" ya está en la biblioteca`);
             return;
         }
@@ -484,13 +624,11 @@ class VideoEditor {
     }
     
     async addVideoFile(file) {
-        // SOLUCIÓN AL BUG: Verificar si el archivo ya existe en la biblioteca
         const existingFile = this.mediaLibrary.find(media => 
             media.name === file.name && media.type === 'video'
         );
         
         if (existingFile) {
-            console.log('🔄 Video ya existe en la biblioteca:', file.name);
             this.showToast('info', `"${file.name}" ya está en la biblioteca`);
             return;
         }
@@ -599,7 +737,6 @@ class VideoEditor {
             this.renderStockGrid(images);
         } catch (error) {
             console.error('Error al cargar imágenes de Pexels:', error);
-            // Imágenes de respaldo de Unsplash
             const fallbackImages = [
                 { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400', name: 'Montaña' },
                 { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400', name: 'Aurora' },
@@ -625,7 +762,6 @@ class VideoEditor {
             item.innerHTML = `<img src="${img.url}" alt="${img.name}">`;
             
             item.addEventListener('dragstart', async (e) => {
-                // SOLUCIÓN AL BUG: Verificar si la imagen ya existe antes de agregar
                 const existingImage = this.mediaLibrary.find(media => 
                     media.url === img.url && media.type === 'image'
                 );
@@ -656,7 +792,6 @@ class VideoEditor {
             });
             
             item.addEventListener('dblclick', async () => {
-                // SOLUCIÓN AL BUG: Verificar si la imagen ya existe antes de agregar
                 const existingImage = this.mediaLibrary.find(media => 
                     media.url === img.url && media.type === 'image'
                 );
@@ -724,11 +859,8 @@ class VideoEditor {
     
     async loadDefaultMusic() {
         const audioList = document.getElementById('audioList');
-        
-        // Limpiar lista existente
         audioList.innerHTML = '';
         
-        // Agregar buscador de música
         const searchContainer = document.createElement('div');
         searchContainer.className = 'search-box';
         searchContainer.style.marginBottom = '15px';
@@ -741,7 +873,6 @@ class VideoEditor {
         `;
         audioList.appendChild(searchContainer);
         
-        // Event listener para el buscador de música
         let musicSearchTimeout;
         document.getElementById('musicSearch').addEventListener('input', (e) => {
             clearTimeout(musicSearchTimeout);
@@ -750,7 +881,6 @@ class VideoEditor {
             }, 500);
         });
         
-        // SIN CANCIONES PREDETERMINADAS - Solo el buscador
         this.renderMusicList([]);
     }
     
@@ -761,7 +891,6 @@ class VideoEditor {
         }
         
         try {
-            // Primero intentar con música local/búsqueda alternativa
             const localResults = this.getLocalMusicResults(query);
             if (localResults.length > 0) {
                 this.renderMusicList(localResults);
@@ -769,7 +898,6 @@ class VideoEditor {
                 return;
             }
             
-            // Fallback a Deezer si no hay resultados locales
             const response = await fetch(`https://corsproxy.io/?url=https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=8`);
             
             if (response.ok) {
@@ -796,14 +924,12 @@ class VideoEditor {
     }
     
     getLocalMusicResults(query) {
-        // SIN CANCIONES PREDETERMINADAS - Retornar array vacío
         return [];
     }
     
     renderMusicList(tracks) {
         const audioList = document.getElementById('audioList');
         
-        // Mantener el buscador y limpiar solo la lista de canciones
         const searchContainer = audioList.querySelector('.search-box');
         audioList.innerHTML = '';
         if (searchContainer) {
@@ -842,7 +968,6 @@ class VideoEditor {
             const playBtn = audioItem.querySelector('.play-preview');
             playBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                console.log('🎵 Click en preview de:', track.title);
                 await this.playAudioPreview(track.preview, audioItem);
             });
             
@@ -855,7 +980,7 @@ class VideoEditor {
     }
     
     async playAudioPreview(url, element) {
-        return await this.audioManager.playAudio(url, element);
+        return await this.audioManager.toggleAudio(url, element);
     }
     
     addAudioToTimeline(track) {
@@ -877,7 +1002,6 @@ class VideoEditor {
         this.renderTimeline();
         this.showToast('success', `"${track.title}" agregado a timeline`);
         
-        // Reproducir automáticamente al agregar a timeline
         if (this.audioManager.userInteracted) {
             setTimeout(() => {
                 this.audioManager.playAudio(track.preview, null);
@@ -951,7 +1075,6 @@ class VideoEditor {
         this.saveState();
         this.timeline.clips.push(clip);
         
-        // Actualizar duración de la timeline si es necesario
         const clipEndTime = clip.startTime + clip.duration;
         if (clipEndTime > this.timeline.duration) {
             this.timeline.duration = Math.ceil(clipEndTime / 10) * 10;
@@ -1031,6 +1154,111 @@ class VideoEditor {
         this.makeClipResizable(element, clip);
         
         return element;
+    }
+    
+    selectClip(clip) {
+        this.selectedClip = clip;
+        this.renderTimeline();
+        
+        if (window.innerWidth <= 768) {
+            this.openPropertiesModal();
+        } else {
+            this.updatePropertiesPanel();
+        }
+    }
+    
+    updatePropertiesPanel() {
+        const content = document.getElementById('propertiesContent');
+        
+        if (!this.selectedClip) {
+            content.innerHTML = `
+                <div class="no-selection">
+                    <i class="fas fa-hand-pointer"></i>
+                    <p>Selecciona un elemento para editar sus propiedades</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const clip = this.selectedClip;
+        
+        let specificProperties = '';
+        
+        if (clip.type === 'text') {
+            specificProperties = `
+                <div class="property-group">
+                    <h4><i class="fas fa-font"></i> Texto</h4>
+                    <div class="property-item">
+                        <label>Contenido</label>
+                        <input type="text" value="${clip.text || ''}" id="clipText">
+                    </div>
+                    <div class="property-item">
+                        <label>Tamaño de fuente</label>
+                        <input type="number" value="${clip.fontSize || 48}" min="12" max="200" id="fontSize">
+                    </div>
+                    <div class="property-item">
+                        <label>Color</label>
+                        <input type="color" value="${clip.color || '#ffffff'}" id="textColor">
+                    </div>
+                    <div class="property-item">
+                        <label>Fuente</label>
+                        <select id="fontFamily">
+                            <option value="Inter" ${clip.fontFamily === 'Inter' ? 'selected' : ''}>Inter</option>
+                            <option value="Arial" ${clip.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
+                            <option value="Georgia" ${clip.fontFamily === 'Georgia' ? 'selected' : ''}>Georgia</option>
+                            <option value="Impact" ${clip.fontFamily === 'Impact' ? 'selected' : ''}>Impact</option>
+                        </select>
+                    </div>
+                    <div class="property-item">
+                        <label>Posición Y (%)</label>
+                        <input type="range" value="${clip.positionY || 50}" min="0" max="100" id="positionY">
+                        <span id="positionYValue">${clip.positionY || 50}%</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        content.innerHTML = `
+            <div class="property-group">
+                <h4><i class="fas fa-info-circle"></i> Información</h4>
+                <div class="property-item">
+                    <label>Nombre</label>
+                    <input type="text" value="${clip.name}" id="clipName">
+                </div>
+                <div class="property-item">
+                    <label>Inicio (s)</label>
+                    <input type="number" value="${clip.startTime.toFixed(2)}" step="0.1" id="clipStart">
+                </div>
+                <div class="property-item">
+                    <label>Duración (s)</label>
+                    <input type="number" value="${clip.duration.toFixed(2)}" step="0.1" min="0.1" id="clipDuration">
+                </div>
+            </div>
+            ${specificProperties}
+        `;
+        
+        const handlers = {
+            'clipName': (e) => { clip.name = e.target.value; this.renderTimeline(); },
+            'clipStart': (e) => { clip.startTime = parseFloat(e.target.value) || 0; this.renderTimeline(); },
+            'clipDuration': (e) => { clip.duration = Math.max(0.1, parseFloat(e.target.value) || 1); this.renderTimeline(); },
+            'clipText': (e) => { clip.text = e.target.value; this.renderPreview(); },
+            'fontSize': (e) => { clip.fontSize = parseInt(e.target.value) || 48; this.renderPreview(); },
+            'textColor': (e) => { clip.color = e.target.value; this.renderPreview(); },
+            'fontFamily': (e) => { clip.fontFamily = e.target.value; this.renderPreview(); },
+            'positionY': (e) => { 
+                clip.positionY = parseInt(e.target.value);
+                const valueDisplay = document.getElementById('positionYValue');
+                if (valueDisplay) valueDisplay.textContent = clip.positionY + '%';
+                this.renderPreview();
+            }
+        };
+        
+        Object.keys(handlers).forEach(id => {
+            const element = content.querySelector('#' + id);
+            if (element) {
+                element.addEventListener('input', handlers[id]);
+            }
+        });
     }
     
     makeClipDraggable(element, clip) {
@@ -1139,107 +1367,6 @@ class VideoEditor {
         handleResize(rightHandle, false);
     }
     
-    selectClip(clip) {
-        this.selectedClip = clip;
-        this.renderTimeline();
-        this.updatePropertiesPanel();
-    }
-    
-    updatePropertiesPanel() {
-        const content = document.getElementById('propertiesContent');
-        
-        if (!this.selectedClip) {
-            content.innerHTML = `
-                <div class="no-selection">
-                    <i class="fas fa-hand-pointer"></i>
-                    <p>Selecciona un elemento para editar sus propiedades</p>
-                </div>
-            `;
-            return;
-        }
-        
-        const clip = this.selectedClip;
-        
-        let specificProperties = '';
-        
-        if (clip.type === 'text') {
-            specificProperties = `
-                <div class="property-group">
-                    <h4><i class="fas fa-font"></i> Texto</h4>
-                    <div class="property-item">
-                        <label>Contenido</label>
-                        <input type="text" value="${clip.text || ''}" id="clipText">
-                    </div>
-                    <div class="property-item">
-                        <label>Tamaño de fuente</label>
-                        <input type="number" value="${clip.fontSize || 48}" min="12" max="200" id="fontSize">
-                    </div>
-                    <div class="property-item">
-                        <label>Color</label>
-                        <input type="color" value="${clip.color || '#ffffff'}" id="textColor">
-                    </div>
-                    <div class="property-item">
-                        <label>Fuente</label>
-                        <select id="fontFamily">
-                            <option value="Inter" ${clip.fontFamily === 'Inter' ? 'selected' : ''}>Inter</option>
-                            <option value="Arial" ${clip.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
-                            <option value="Georgia" ${clip.fontFamily === 'Georgia' ? 'selected' : ''}>Georgia</option>
-                            <option value="Impact" ${clip.fontFamily === 'Impact' ? 'selected' : ''}>Impact</option>
-                        </select>
-                    </div>
-                    <div class="property-item">
-                        <label>Posición Y (%)</label>
-                        <input type="range" value="${clip.positionY || 50}" min="0" max="100" id="positionY">
-                        <span id="positionYValue">${clip.positionY || 50}%</span>
-                    </div>
-                </div>
-            `;
-        }
-        
-        content.innerHTML = `
-            <div class="property-group">
-                <h4><i class="fas fa-info-circle"></i> Información</h4>
-                <div class="property-item">
-                    <label>Nombre</label>
-                    <input type="text" value="${clip.name}" id="clipName">
-                </div>
-                <div class="property-item">
-                    <label>Inicio (s)</label>
-                    <input type="number" value="${clip.startTime.toFixed(2)}" step="0.1" id="clipStart">
-                </div>
-                <div class="property-item">
-                    <label>Duración (s)</label>
-                    <input type="number" value="${clip.duration.toFixed(2)}" step="0.1" min="0.1" id="clipDuration">
-                </div>
-            </div>
-            ${specificProperties}
-        `;
-        
-        // Event listeners
-        const handlers = {
-            'clipName': (e) => { clip.name = e.target.value; this.renderTimeline(); },
-            'clipStart': (e) => { clip.startTime = parseFloat(e.target.value) || 0; this.renderTimeline(); },
-            'clipDuration': (e) => { clip.duration = Math.max(0.1, parseFloat(e.target.value) || 1); this.renderTimeline(); },
-            'clipText': (e) => { clip.text = e.target.value; this.renderPreview(); },
-            'fontSize': (e) => { clip.fontSize = parseInt(e.target.value) || 48; this.renderPreview(); },
-            'textColor': (e) => { clip.color = e.target.value; this.renderPreview(); },
-            'fontFamily': (e) => { clip.fontFamily = e.target.value; this.renderPreview(); },
-            'positionY': (e) => { 
-                clip.positionY = parseInt(e.target.value);
-                const valueDisplay = document.getElementById('positionYValue');
-                if (valueDisplay) valueDisplay.textContent = clip.positionY + '%';
-                this.renderPreview();
-            }
-        };
-        
-        Object.keys(handlers).forEach(id => {
-            const element = content.querySelector('#' + id);
-            if (element) {
-                element.addEventListener('input', handlers[id]);
-            }
-        });
-    }
-    
     addTextClip(style) {
         const styles = {
             title: { text: 'Título Principal', fontSize: 72, color: '#ffffff', positionY: 30 },
@@ -1301,7 +1428,6 @@ class VideoEditor {
             const elapsed = (currentTime - startTime) / 1000;
             this.timeline.currentTime = initialTime + elapsed;
             
-            // Reproducir audio de la timeline durante la edición
             this.timeline.clips.forEach(clip => {
                 if (clip.type === 'audio') {
                     this.audioManager.playTimelineAudio(clip, this.timeline.currentTime);
@@ -1329,7 +1455,6 @@ class VideoEditor {
         const playBtn = document.getElementById('playBtn');
         playBtn.innerHTML = '<i class="fas fa-play"></i>';
         
-        // Pausar todo el audio al pausar la timeline
         this.audioManager.pauseAudio();
         
         if (this.animationFrame) {
@@ -1382,23 +1507,19 @@ class VideoEditor {
         const ctx = this.ctx;
         const canvas = this.canvas;
         
-        // Limpiar canvas
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Obtener clips visibles en el tiempo actual
         const currentClips = this.timeline.clips.filter(clip => {
             return this.timeline.currentTime >= clip.startTime && 
                    this.timeline.currentTime < clip.startTime + clip.duration;
         });
         
-        // Ordenar por tipo de pista (imágenes/video primero, texto después)
         const sortedClips = currentClips.sort((a, b) => {
             const order = { 'image': 0, 'video': 1, 'text': 2 };
             return (order[a.type] || 0) - (order[b.type] || 0);
         });
         
-        // Renderizar cada clip
         for (const clip of sortedClips) {
             if (clip.type === 'image') {
                 await this.drawImageClip(ctx, clip);
@@ -1423,12 +1544,10 @@ class VideoEditor {
             
             ctx.save();
             
-            // Aplicar filtros
             if (clip.effects) {
                 ctx.filter = this.buildFilterString(clip.effects);
             }
             
-            // Calcular escala para cubrir todo el canvas manteniendo aspecto
             const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
             const x = (canvas.width - img.width * scale) / 2;
             const y = (canvas.height - img.height * scale) / 2;
@@ -1455,7 +1574,6 @@ class VideoEditor {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Sombra para mejor legibilidad
         ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
         ctx.shadowBlur = 10;
         ctx.shadowOffsetX = 2;
@@ -1672,21 +1790,28 @@ class VideoEditor {
             clips: this.timeline.clips,
             mediaLibrary: this.mediaLibrary,
             duration: this.timeline.duration,
+            currentTime: this.timeline.currentTime,
+            zoom: this.timeline.zoom,
             resolution: this.project.resolution,
-            fps: this.project.fps
+            fps: this.project.fps,
+            history: this.history
         };
         
-        localStorage.setItem('cinevida_project', JSON.stringify(projectData));
-        localStorage.setItem('cinevida_project_name', projectName);
-        
-        this.showToast('success', `Proyecto "${projectName}" guardado`);
+        try {
+            localStorage.setItem('cinevida_project', JSON.stringify(projectData));
+            localStorage.setItem('cinevida_project_name', projectName);
+            
+            this.showToast('success', `✅ Proyecto "${projectName}" guardado`);
+        } catch (error) {
+            console.error('Error al guardar proyecto:', error);
+            this.showToast('error', '❌ Error al guardar el proyecto');
+        }
     }
     
     loadProject() {
         const savedProject = localStorage.getItem('cinevida_project');
         
         if (!savedProject) {
-            this.showToast('error', 'No hay proyecto guardado');
             return;
         }
         
@@ -1696,13 +1821,15 @@ class VideoEditor {
             this.timeline.clips = projectData.clips || [];
             this.mediaLibrary = projectData.mediaLibrary || [];
             this.timeline.duration = projectData.duration || 60;
+            this.timeline.currentTime = projectData.currentTime || 0;
+            this.timeline.zoom = projectData.zoom || 1;
+            this.history = projectData.history || { past: [], future: [] };
             
             const projectName = localStorage.getItem('cinevida_project_name');
             if (projectName) {
                 document.getElementById('projectName').value = projectName;
             }
             
-            // Precargar todas las imágenes
             this.loadedImages.clear();
             this.mediaLibrary.forEach(async (media) => {
                 if (media.type === 'image' && media.url) {
@@ -1718,11 +1845,11 @@ class VideoEditor {
             this.renderTimeline();
             this.renderMediaGrid();
             this.renderPreview();
+            this.updateTimeDisplay();
+            this.updatePlayhead();
             
-            this.showToast('success', 'Proyecto cargado');
         } catch (error) {
             console.error('Error al cargar proyecto:', error);
-            this.showToast('error', 'Error al cargar el proyecto');
         }
     }
     
@@ -1730,9 +1857,8 @@ class VideoEditor {
         setInterval(() => {
             if (this.timeline.clips.length > 0) {
                 this.saveProject();
-                console.log('✅ Autoguardado realizado');
             }
-        }, 60000);
+        }, 30000);
     }
     
     openExportModal() {
@@ -1745,70 +1871,282 @@ class VideoEditor {
     }
     
     async exportVideo() {
-        const resolution = document.getElementById('resolutionSelect').value;
-        const format = document.getElementById('formatSelect').value;
-        
+        if (this.timeline.clips.length === 0) {
+            this.showToast('error', 'Agrega clips antes de exportar');
+            return;
+        }
+
         document.getElementById('exportProgress').style.display = 'block';
         document.getElementById('startExportBtn').disabled = true;
         
-        this.showToast('info', 'Iniciando exportación...');
-        
-        // Simulación de progreso
-        for (let i = 0; i <= 100; i += 10) {
-            await this.sleep(500);
-            document.getElementById('progressFill').style.width = i + '%';
-            document.getElementById('progressText').textContent = `Exportando... ${i}%`;
-        }
-        
+        this.showToast('info', '⏳ Preparando exportación...');
+
         try {
-            const blob = await this.renderVideoToBlob();
+            const resolution = document.getElementById('resolutionSelect').value;
+            const format = document.getElementById('formatSelect').value;
             
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `cinevida_${Date.now()}.${format}`;
-            link.click();
-            
-            this.showToast('success', '¡Video exportado exitosamente!');
+            document.getElementById('progressFill').style.width = '10%';
+            document.getElementById('progressText').textContent = 'Preparando... 10%';
+
+            await this.sleep(500);
+
+            // Crear video real usando MediaRecorder
+            await this.createRealVideo(resolution, format);
+
+            this.showToast('success', '✅ ¡Video exportado exitosamente!');
+
         } catch (error) {
             console.error('Error al exportar:', error);
-            this.showToast('error', 'Error al exportar el video');
+            this.showToast('error', '❌ Error al exportar el video');
+        } finally {
+            document.getElementById('exportModal').classList.remove('active');
+            document.getElementById('exportProgress').style.display = 'none';
+            document.getElementById('startExportBtn').disabled = false;
+            document.getElementById('progressFill').style.width = '0%';
+        }
+    }
+
+    async createRealVideo(resolution, format) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                // Configurar resolución
+                let width, height;
+                switch(resolution) {
+                    case '3840x2160':
+                        width = 3840; height = 2160;
+                        break;
+                    case '1920x1080':
+                        width = 1920; height = 1080;
+                        break;
+                    case '1280x720':
+                    default:
+                        width = 1280; height = 720;
+                }
+
+                // Crear canvas temporal
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = width;
+                tempCanvas.height = height;
+
+                // Configurar MediaRecorder
+                const stream = tempCanvas.captureStream(25); // 25 FPS para mejor compatibilidad
+                const mimeType = format === 'webm' ? 'video/webm;codecs=vp9' : 'video/mp4;codecs=avc1.42E01E';
+
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    // Fallback a WebM si MP4 no es soportado
+                    const fallbackMimeType = 'video/webm;codecs=vp8';
+                    if (!MediaRecorder.isTypeSupported(fallbackMimeType)) {
+                        throw new Error('Tu navegador no soporta la grabación de video');
+                    }
+                    await this.recordWebMVideo(tempCanvas, tempCtx, width, height, fallbackMimeType);
+                } else {
+                    await this.recordMP4Video(tempCanvas, tempCtx, width, height, mimeType);
+                }
+                
+                resolve();
+                
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    async recordMP4Video(canvas, ctx, width, height, mimeType) {
+        return new Promise((resolve, reject) => {
+            const stream = canvas.captureStream(25);
+            const mediaRecorder = new MediaRecorder(stream, {
+                mimeType: mimeType,
+                videoBitsPerSecond: 2500000 // 2.5 Mbps
+            });
+
+            const chunks = [];
+            let currentTime = 0;
+            const frameDuration = 1000 / 25; // 40ms por frame
+            const totalDuration = this.timeline.duration * 1000; // en milisegundos
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    chunks.push(e.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: mimeType });
+                this.downloadVideoFile(blob, 'mp4');
+                resolve();
+            };
+
+            mediaRecorder.onerror = (e) => {
+                reject(new Error('Error en la grabación del video'));
+            };
+
+            // Iniciar grabación
+            mediaRecorder.start();
+
+            // Renderizar frames
+            const renderFrames = () => {
+                if (currentTime >= totalDuration) {
+                    mediaRecorder.stop();
+                    return;
+                }
+
+                // Actualizar progreso
+                const progress = (currentTime / totalDuration) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+                document.getElementById('progressText').textContent = `Exportando... ${Math.round(progress)}%`;
+
+                // Renderizar frame actual
+                this.timeline.currentTime = currentTime / 1000;
+                this.renderExportFrame(ctx, width, height);
+
+                currentTime += frameDuration;
+                setTimeout(renderFrames, frameDuration);
+            };
+
+            // Comenzar renderizado
+            renderFrames();
+        });
+    }
+
+    async recordWebMVideo(canvas, ctx, width, height, mimeType) {
+        return new Promise((resolve, reject) => {
+            const stream = canvas.captureStream(25);
+            const mediaRecorder = new MediaRecorder(stream, {
+                mimeType: mimeType,
+                videoBitsPerSecond: 2000000 // 2 Mbps para WebM
+            });
+
+            const chunks = [];
+            let currentTime = 0;
+            const frameDuration = 1000 / 25;
+            const totalDuration = this.timeline.duration * 1000;
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    chunks.push(e.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: mimeType });
+                this.downloadVideoFile(blob, 'webm');
+                resolve();
+            };
+
+            mediaRecorder.onerror = (e) => {
+                reject(new Error('Error en la grabación del video WebM'));
+            };
+
+            mediaRecorder.start();
+
+            const renderFrames = () => {
+                if (currentTime >= totalDuration) {
+                    mediaRecorder.stop();
+                    return;
+                }
+
+                const progress = (currentTime / totalDuration) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+                document.getElementById('progressText').textContent = `Exportando... ${Math.round(progress)}%`;
+
+                this.timeline.currentTime = currentTime / 1000;
+                this.renderExportFrame(ctx, width, height);
+
+                currentTime += frameDuration;
+                setTimeout(renderFrames, frameDuration);
+            };
+
+            renderFrames();
+        });
+    }
+
+    renderExportFrame(ctx, width, height) {
+        // Limpiar canvas
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Obtener clips visibles
+        const currentClips = this.timeline.clips.filter(clip => {
+            return this.timeline.currentTime >= clip.startTime && 
+                   this.timeline.currentTime < clip.startTime + clip.duration;
+        });
+        
+        // Ordenar
+        const sortedClips = currentClips.sort((a, b) => {
+            const order = { 'image': 0, 'video': 1, 'text': 2 };
+            return (order[a.type] || 0) - (order[b.type] || 0);
+        });
+        
+        // Renderizar cada clip
+        sortedClips.forEach(clip => {
+            if (clip.type === 'image') {
+                this.drawExportImageClip(ctx, clip, width, height);
+            } else if (clip.type === 'text') {
+                this.drawExportTextClip(ctx, clip, width, height);
+            }
+        });
+    }
+
+    drawExportImageClip(ctx, clip, width, height) {
+        const img = this.loadedImages.get(clip.mediaId);
+        if (!img) return;
+        
+        ctx.save();
+        
+        if (clip.effects) {
+            ctx.filter = this.buildFilterString(clip.effects);
         }
         
-        document.getElementById('exportModal').classList.remove('active');
-        document.getElementById('exportProgress').style.display = 'none';
-        document.getElementById('startExportBtn').disabled = false;
+        const scale = Math.max(width / img.width, height / img.height);
+        const x = (width - img.width * scale) / 2;
+        const y = (height - img.height * scale) / 2;
+        
+        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+        
+        ctx.restore();
     }
-    
-    async renderVideoToBlob() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1920;
-        canvas.height = 1080;
+
+    drawExportTextClip(ctx, clip, width, height) {
+        ctx.save();
         
-        const stream = canvas.captureStream(30);
-        const mediaRecorder = new MediaRecorder(stream, {
-            mimeType: 'video/webm;codecs=vp9',
-            videoBitsPerSecond: 8000000
-        });
+        const fontSize = (clip.fontSize || 48) * (width / 1920);
+        const fontFamily = clip.fontFamily || 'Inter';
+        const color = clip.color || '#ffffff';
+        const text = clip.text || '';
+        const positionY = clip.positionY || 50;
         
-        const chunks = [];
+        ctx.font = `bold ${fontSize}px ${fontFamily}`;
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         
-        mediaRecorder.ondataavailable = (e) => {
-            if (e.data.size > 0) {
-                chunks.push(e.data);
-            }
-        };
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 3;
         
-        return new Promise((resolve) => {
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                resolve(blob);
-            };
-            
-            mediaRecorder.start();
-            setTimeout(() => {
-                mediaRecorder.stop();
-            }, 3000);
-        });
+        const x = width / 2;
+        const y = (height * positionY) / 100;
+        
+        ctx.fillText(text, x, y);
+        
+        ctx.restore();
+    }
+
+    downloadVideoFile(blob, extension) {
+        const projectName = document.getElementById('projectName').value || 'cinevida';
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `${projectName}_${timestamp}.${extension}`;
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
     
     hidePreviewOverlay() {
@@ -1843,9 +2181,11 @@ class VideoEditor {
             toast.style.transition = 'opacity 0.3s';
             toast.style.opacity = '0';
             setTimeout(() => {
-                toast.remove();
+                if (toast.parentNode) {
+                    toast.remove();
+                }
             }, 300);
-        }, 3000);
+        }, 4000);
     }
     
     generateId() {
